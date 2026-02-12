@@ -1,18 +1,31 @@
-const app = document.getElementById("app") as HTMLDivElement;
+import "./style.css";
+import { FlameMonument } from "./components/FlameMonument";
 
-const img = document.createElement("img");
-img.src = "/monument.png";
-img.alt = "Monument";
+const app = document.getElementById("app") as HTMLDivElement | null;
 
-// 图片加载失败时的简单提示
-img.onerror = () => {
-  app.textContent = "图片加载失败，请确认 public/monument.png 存在。";
-  app.style.display = "flex";
-  app.style.alignItems = "center";
-  app.style.justifyContent = "center";
-  app.style.fontSize = "1.2rem";
-  app.style.color = "#999";
-};
+if (!app) {
+  throw new Error("Missing #app container");
+}
 
-app.appendChild(img);
+const FIRE_ROUTE = "/fire";
+if (window.location.pathname !== FIRE_ROUTE) {
+  window.history.replaceState(null, "", FIRE_ROUTE);
+}
+
+app.innerHTML = `
+  <div class="relative min-h-screen overflow-hidden">
+    <div class="relative flex min-h-screen items-center justify-center">
+      <div id="monument-slot" class="relative"></div>
+    </div>
+  </div>
+`;
+
+const monumentSlot = document.getElementById("monument-slot") as HTMLDivElement;
+const monument = new FlameMonument({
+  size: 1,
+  intensity: 1,
+  speed: 1,
+  flameLayer: "front",
+});
+monumentSlot.appendChild(monument.el);
 
