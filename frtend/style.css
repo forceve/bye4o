@@ -1537,6 +1537,7 @@ body[data-route="fire"] .monument-slot::after {
 body[data-route="fire"] .flame-monument {
   position: relative;
   z-index: 2;
+  --flame-size: 286px;
   --scene-lift-y: 246px;
 }
 
