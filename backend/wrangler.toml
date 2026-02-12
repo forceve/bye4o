@@ -1,0 +1,15 @@
+name = "bye4o-backend"
+main = "src/index.ts"
+compatibility_date = "2026-02-12"
+
+[vars]
+CORS_ORIGIN = "https://bye4o.org"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "bye4o"
+database_id = "ba908d15-ff7a-4b5d-96bb-a0caaf381469"
+
+[[r2_buckets]]
+binding = "TRACE_ARCHIVE"
+bucket_name = "bye4o-trace-archive"

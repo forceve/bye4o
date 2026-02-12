@@ -1,69 +1,232 @@
-你是一个前端动效工程师。目标：将我分别导出的 obelisk.svg（碑体）与 flame.svg（火焰）组合成一个可复用网页组件，并实现「真实燃烧」的火焰动效。注意：flame.svg 并没有把每条火舌拆成独立 path；它可能是一整块连续形状（或少数 path）。因此不能依赖「每条火舌一个 path」的动画方案。你需要用 SVG filter/mask/叠加层在不拆 path 的情况下做出火焰燃烧效果：火焰边缘流动、火焰整体向上「抽动」、顶部逐渐变细并消散，同时有少量「分离出来的火星/小尖尖」向上飘散消失。
+# Landing Page 开发手册
 
-【输入资源】
-- obelisk.svg（碑体矢量）
-- flame.svg（火焰矢量，可能是一个或少数 path，不区分火舌）
+## 项目概述
 
-【技术栈与约束】
-- 前端：TypeScript + Tailwind CSS
-- 动画：优先使用 GSAP（或 Web Animations API），必须 TS 可运行
-- 保持矢量，不转位图，不用 Canvas
-- 性能：尽量使用 transform/opacity/filter，不要每帧大量改 path d
+bye4o 是一个多页面单页应用（SPA），以「火焰纪念碑」为核心视觉元素，提供多个内容页面展示与交互功能。项目采用 TypeScript + Vite + Tailwind CSS 技术栈，前后端分离架构。
 
-【必须达成的视觉/层级要求】
-1) 火焰显示在碑体底部附近，位置对齐，底座不悬空。
-2) 提供 flameLayer: "front" | "behind"（默认 front）。behind 时火焰应被碑体遮挡；front 时允许覆盖碑体底部一点。
-3) 火焰燃烧效果要明显：边缘流动、亮度呼吸、顶部形态不断变化。
-4) 「向上游动+变细+分离+消失」需要通过组合手段实现，不要求真的按火舌分组，但观感必须满足：
-   - 观感上火焰的尖尖在往上走
-   - 顶部尖尖在变细、断开、消散
-   - 有少量分离的火星/小碎片上飘后消失（关键！用来模拟「分离」）
+## 项目结构
 
-【实现方案要求（请按此方案落地，不要改为拆 path）】
-A) 整体火焰燃烧（必须）
-- 对 flame.svg 的主图形应用 SVG filter：
-  - feTurbulence（baseFrequency 适中，numOctaves 2~4，seed 可变）
-  - feDisplacementMap（scale 小到中，随时间轻微变化）
-- 使用 GSAP 动画驱动 turbulence 的 baseFrequency / seed 或者使用 <animate> 驱动（但整体项目仍用 TS 管理）。
-- 叠加一个「亮度呼吸」：轻微改变 opacity 或通过 filter（如 feColorMatrix/feComponentTransfer）让火焰发光强度有细微波动。
+```
+frtend/
+├── components/          # 可复用组件
+│   ├── FlameMonument.ts    # 火焰纪念碑组件（核心）
+│   └── HoverTopNav.ts      # 顶部悬浮导航组件
+├── services/           # 业务服务层
+│   ├── apiClient.ts        # API 客户端封装
+│   ├── fromFlameQuoteService.ts  # 火语服务
+│   └── tracesApiService.ts       # 留言服务
+├── public/             # 静态资源
+│   ├── obelisk.svg          # 碑体 SVG
+│   ├── fire-0.svg           # 火焰 SVG（帧 0）
+│   ├── fire-1.svg           # 火焰 SVG（帧 1）
+│   ├── fire-2.svg           # 火焰 SVG（帧 2）
+│   ├── bench-tight.svg      # 长椅 SVG
+│   └── GPT-4o_Poetic_Quotes_Collection.md  # 火语数据源
+├── docs/              # 文档
+│   └── Landingpage开发手册.md
+├── main.ts            # 应用入口，路由与页面渲染
+├── style.css          # 全局样式（Tailwind + 自定义）
+├── index.html         # HTML 入口
+└── package.json       # 依赖配置
+```
 
-B) 顶部变细 + 消散（必须）
-- 使用一个 mask 或 clipPath 实现「从下到上逐渐透明」的渐隐带，并让这个渐隐带缓慢向上移动循环：
-  - 让火焰顶部在一个周期里逐渐淡出消失，然后从底部重新「补充」。
-- 渐隐带需要有噪声边缘（可用同一个 turbulence 作为 mask 纹理）以避免直线切掉的假感。
+## 技术栈
 
-C) 火焰“尖尖向上游动”的感觉（必须）
-- 不拆 path 的前提下，通过「流动纹理层」制造上升感：
-  - 复制 flame 图形作为第二层（highlight layer），对其使用不同的 displacement + 一个向上平移的渐变/噪声 mask，让高亮区域像沿火焰向上流动。
-  - 两层叠加：底层稳定燃烧，上层高亮纹理上移，产生「火舌上窜」的错觉。
+- **构建工具**: Vite 6.x
+- **语言**: TypeScript 5.7
+- **样式**: Tailwind CSS 3.4 + 自定义 CSS
+- **动画库**: GSAP 3.12（已安装，当前未使用）
+- **路由**: 客户端路由（基于 `window.location.pathname`）
 
-D) 分离的火星/小尖尖（必须，模拟分离）
-- 在火焰顶部区域生成 N 个小矢量粒子（例如小三角形/小水滴 path/circle 也可，但要看起来像火星）：
-  - 粒子出生位置：火焰顶部随机 x 范围内，y 在顶部附近
-  - 运动：向上漂移 + 少量左右摆动
-  - 形态：scale 从 1 -> 0.2，opacity 从 1 -> 0
-  - 生命周期：0.6s~1.6s 随机，循环生成（复用 DOM，别无限创建）
-- 粒子颜色可复用火焰色系（橙/黄/红），但不要引入新的花哨配色。
-- 粒子数量控制在性能可接受（比如 8~20 个，循环复用）。
+## 核心功能模块
 
-【可配置项 options（必须实现）】
-- size: number（整体缩放）
-- flameLayer: "front" | "behind"
-- intensity: number（影响 displacement scale、火焰呼吸幅度、火星数量与速度）
-- speed: number（全局速度倍率）
-- paused: boolean
-- reducedMotion: boolean（若 true 或 prefers-reduced-motion，则关闭 displacement 动画和火星，仅保留非常轻微的亮度呼吸）
+### 1. 路由系统
 
-【交付物】
-1) 组件/函数源码（TypeScript），例如：
-   - React 组件 <FlameMonument />
+**路由定义** (`main.ts`):
+- `/` 或 `/fire` - 火焰主页面（纪念碑展示）
+- `/fromflame` - 火语页面（精选语句展示）
+- `/carvings` - 碑文页面（项目理念）
+- `/carvings/articles` - 碑文文章列表
+- `/unburnt` - 不焚页面（对话片段）
+- `/traces` - 余温页面（用户留言）
+- `/lastwords` - 最后的话页面（表单）
 
-【验收标准】
-- 不拆 flame.svg 火舌 path，也能明显看出火焰在燃烧与上窜
-- 顶部有「变细+消散」观感（靠 mask 循环实现）
-- 有火星粒子向上分离消失
-- layer 切换遮挡正确
-- reducedMotion 生效
-- 无控制台报错，动画稳定
+**路由特性**:
+- 基于 `popstate` 事件的历史路由
+- 自动路由规范化与重定向
+- 页面切换时的过渡动画（进入 `/fire` 时的雾化效果）
+- 响应式缩放（`/fire` 页面根据视口高度自适应）
 
-现在输出：文件结构、核心 TS 代码、demo 使用方式、README。
+### 2. FlameMonument 组件
+
+**当前实现状态**:
+- ✅ 基础结构：碑体与火焰图层组合
+- ✅ 图层控制：`flameLayer: "front" | "behind"` 支持
+- ✅ 基础动画：多帧火焰 SVG 的轻微位移（drift）效果
+- ✅ 配置项：`size`, `flameLayer`, `intensity`, `speed`, `paused`, `reducedMotion`
+
+**实现方式**:
+- 使用 3 个独立的火焰 SVG 文件（`fire-0.svg`, `fire-1.svg`, `fire-2.svg`）
+- 通过 `setInterval` 驱动每帧的 `transform: translate()` 实现轻微抖动
+- 简单的位移边界控制，避免过度偏移
+
+**使用示例**:
+```typescript
+import { FlameMonument } from "./components/FlameMonument";
+
+const monument = new FlameMonument({
+  size: 2.1,
+  flameLayer: "front",
+  intensity: 1,
+  speed: 1,
+  paused: false,
+  reducedMotion: false,
+});
+
+document.getElementById("slot")?.appendChild(monument.el);
+
+// 动态更新配置
+monument.update({ intensity: 1.2, flameLayer: "behind" });
+
+// 销毁组件
+monument.destroy();
+```
+
+### 3. HoverTopNav 组件
+
+**功能**:
+- 顶部悬浮导航栏（鼠标移入或点击页面时显示）
+- 自动隐藏（3 秒后淡出）
+- 当前路由高亮
+- 响应式布局
+
+**使用示例**:
+```typescript
+import { createHoverTopNav } from "./components/HoverTopNav";
+
+const navElement = createHoverTopNav({
+  items: [
+    { label: "长椅", path: "/fire" },
+    { label: "火语", path: "/fromflame" },
+    // ...
+  ],
+  activePath: currentRoute,
+  onNavigate: (path) => navigate(path),
+});
+
+// 手动控制
+navElement.controller.show();
+navElement.controller.hide();
+navElement.controller.destroy();
+```
+
+### 4. 服务层
+
+#### fromFlameQuoteService
+- 从 Markdown 文件解析火语数据
+- 随机批次获取（默认 6 条）
+- 本地缓存与打乱逻辑
+- 降级处理（加载失败时使用内置备用数据）
+
+#### tracesApiService
+- 留言 CRUD 操作
+- 草稿自动保存（防抖 600ms）
+- 会话管理（匿名用户 ID）
+- 基于后端 API（`/api/traces`）
+
+### 5. 样式系统
+
+**设计变量** (`style.css`):
+- 深色主题（`color-scheme: dark`）
+- 金色系配色（`--gold-main`, `--gold-bright` 等）
+- 渐变背景（`--bg-content`, `--bg-fire`）
+- 响应式断点（960px, 640px）
+
+**关键样式类**:
+- `.flame-monument` - 纪念碑容器
+- `.fire-stage` - 火焰页面舞台（响应式缩放）
+- `.route-transition-fog` - 路由切换雾化效果
+- `.hover-top-nav` - 顶部导航
+- `.content-card` - 内容卡片（通用样式）
+
+## 原始需求（参考）
+
+以下为 FlameMonument 组件的原始设计需求，当前实现**尚未完全达成**，可作为未来改进方向：
+
+### 视觉要求
+1. 火焰显示在碑体底部，位置对齐
+2. `flameLayer` 支持前后层切换
+3. 火焰燃烧效果：边缘流动、亮度呼吸、顶部形态变化
+4. 向上游动+变细+分离+消失的观感
+
+### 技术方案（待实现）
+- **A) 整体燃烧**: SVG `feTurbulence` + `feDisplacementMap` 驱动边缘流动
+- **B) 顶部消散**: 渐变 mask 循环上移，实现渐隐效果
+- **C) 流动纹理**: 双层叠加，高亮层向上流动
+- **D) 火星粒子**: 8~20 个循环复用的 SVG 粒子，向上飘散消失
+
+### 配置项（已实现接口，部分功能待完善）
+- `size`: number - 整体缩放 ✅
+- `flameLayer`: "front" | "behind" ✅
+- `intensity`: number - 当前仅影响动画开关 ⚠️
+- `speed`: number - 当前未使用 ⚠️
+- `paused`: boolean ✅
+- `reducedMotion`: boolean ✅
+
+## 开发指南
+
+### 本地开发
+```bash
+cd frtend
+npm install
+npm run dev
+```
+
+### 构建生产版本
+```bash
+npm run build
+```
+
+### 环境变量
+创建 `.env` 文件（参考 `.env.example`）:
+```
+VITE_API_BASE=http://127.0.0.1:8787
+```
+
+### 添加新页面
+1. 在 `main.ts` 的 `ROUTES` 中添加路由常量
+2. 在 `PAGE_RENDERERS` 中添加渲染函数
+3. 在 `NAV_ITEMS` 中添加导航项（如需要）
+4. 在 `setupPageInteractions` 中添加交互逻辑（如需要）
+
+### 修改 FlameMonument 动画
+当前动画逻辑在 `FlameMonument.ts` 的 `startFlameDrift()` 和 `tickFlameDrift()` 方法中。如需实现更复杂的 SVG filter 效果，可参考原始需求中的技术方案。
+
+## 待改进项
+
+1. **FlameMonument 动画增强**
+   - 集成 GSAP 实现更流畅的动画
+   - 实现 SVG filter 驱动的燃烧效果
+   - 添加火星粒子系统
+   - 实现顶部消散效果
+
+2. **性能优化**
+   - 火焰 SVG 资源预加载
+   - 路由切换时的资源清理
+   - 动画帧率优化
+
+3. **可访问性**
+   - 完善 ARIA 标签
+   - 键盘导航支持
+   - 屏幕阅读器优化
+
+4. **测试**
+   - 组件单元测试
+   - 路由集成测试
+   - E2E 测试
+
+## 相关文档
+
+- `README.md` - 项目快速开始指南
+- `components/FlameMonument.ts` - 组件源码
+- `main.ts` - 应用主逻辑

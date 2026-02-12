@@ -28,18 +28,29 @@ interface FlameSourceLayer {
 }
 
 const SVG_NS = "http://www.w3.org/2000/svg";
-const FLAME_DRIFT_INTERVAL_MS = 1000;
-const FLAME_DRIFT_MIN_STEP = 1;
-const FLAME_DRIFT_MAX_STEP = 3;
-const FLAME_DRIFT_MAX_OFFSET = 3;
+const FLAME_DRIFT_BASE_INTERVAL_MS = 1000;
+const FLAME_DRIFT_INTERVAL_JITTER_MIN_MS = -100;
+const FLAME_DRIFT_INTERVAL_JITTER_MAX_MS = 100;
+const FLAME_DRIFT_INITIAL_OFFSET_STEP_MS = 180;
+const FLAME_DRIFT_X_MIN_STEP = 1;
+const FLAME_DRIFT_X_MAX_STEP = 3;
+const FLAME_DRIFT_X_MAX_OFFSET = 3;
+const FLAME_DRIFT_Y_STEP = 1;
+const FLAME_DRIFT_Y_MAX_OFFSET = 2;
+const FLAME_OPACITY_MIN = 0.6;
+const FLAME_OPACITY_MAX = 1;
+const FLAME_OPACITY_MIN_STEP = 0.04;
+const FLAME_OPACITY_MAX_STEP = 0.1;
 
 export class FlameMonument {
   public readonly el: HTMLDivElement;
   private options: Required<FlameMonumentOptions>;
   private parts?: FlameParts;
   private obeliskSvg?: SVGSVGElement;
-  private flameOffsets: number[] = [];
-  private driftTimerId: number | null = null;
+  private flameOffsetsX: number[] = [];
+  private flameOffsetsY: number[] = [];
+  private flameOpacities: number[] = [];
+  private driftTimerIds: Array<number | null> = [];
   private ready = false;
   private destroyed = false;
 
@@ -184,67 +195,188 @@ export class FlameMonument {
   }
 
   private startFlameDrift() {
-    if (this.driftTimerId !== null || !this.parts) {
+    if (!this.parts || this.isDriftRunning()) {
       return;
     }
 
-    this.flameOffsets = this.parts.flameGroups.map(() => 0);
+    this.flameOffsetsX = this.parts.flameGroups.map(() => 0);
+    this.flameOffsetsY = this.parts.flameGroups.map(() => 0);
+    this.flameOpacities = this.parts.flameGroups.map(() =>
+      this.getRandomOpacity(FLAME_OPACITY_MIN, FLAME_OPACITY_MAX)
+    );
 
     this.parts.flameGroups.forEach((group, index) => {
-      this.setFlameOffset(group, this.flameOffsets[index] ?? 0);
+      this.setFlameState(
+        group,
+        this.flameOffsetsX[index] ?? 0,
+        this.flameOffsetsY[index] ?? 0,
+        this.flameOpacities[index] ?? FLAME_OPACITY_MAX
+      );
     });
 
-    this.driftTimerId = window.setInterval(() => {
-      this.tickFlameDrift();
-    }, FLAME_DRIFT_INTERVAL_MS);
+    this.driftTimerIds = this.parts.flameGroups.map(() => null);
+    this.parts.flameGroups.forEach((_, index) => {
+      this.scheduleFlameDrift(index, this.getInitialDriftDelayMs(index));
+    });
   }
 
   private stopFlameDrift() {
-    if (this.driftTimerId === null) {
+    if (this.driftTimerIds.length === 0) {
       return;
     }
 
-    window.clearInterval(this.driftTimerId);
-    this.driftTimerId = null;
+    this.driftTimerIds.forEach((timerId) => {
+      if (timerId !== null) {
+        window.clearTimeout(timerId);
+      }
+    });
+    this.driftTimerIds = [];
   }
 
-  private tickFlameDrift() {
+  private scheduleFlameDrift(index: number, delayMs: number) {
+    if (!this.shouldRunFlameDrift()) {
+      return;
+    }
+
+    const timerId = window.setTimeout(() => {
+      this.driftTimerIds[index] = null;
+      this.tickFlameDrift(index);
+
+      if (!this.shouldRunFlameDrift()) {
+        return;
+      }
+
+      this.scheduleFlameDrift(index, this.getRandomDriftIntervalMs());
+    }, Math.max(120, delayMs));
+
+    this.driftTimerIds[index] = timerId;
+  }
+
+  private tickFlameDrift(index: number) {
     if (!this.parts || this.destroyed) {
       return;
     }
 
-    this.parts.flameGroups.forEach((group, index) => {
-      const currentOffset = this.flameOffsets[index] ?? 0;
-      const direction = Math.random() >= 0.5 ? 1 : -1;
-      const step = this.getRandomDriftStep();
-      let nextOffset = currentOffset + direction * step;
+    const group = this.parts.flameGroups[index];
+    if (!group) {
+      return;
+    }
 
-      if (nextOffset > FLAME_DRIFT_MAX_OFFSET) {
-        const overshoot = nextOffset - FLAME_DRIFT_MAX_OFFSET;
-        nextOffset = FLAME_DRIFT_MAX_OFFSET - overshoot;
-      } else if (nextOffset < -FLAME_DRIFT_MAX_OFFSET) {
-        const overshoot = -FLAME_DRIFT_MAX_OFFSET - nextOffset;
-        nextOffset = -FLAME_DRIFT_MAX_OFFSET + overshoot;
-      }
+    const currentOffsetX = this.flameOffsetsX[index] ?? 0;
+    const directionX = Math.random() >= 0.5 ? 1 : -1;
+    const stepX = this.getRandomDriftXStep();
+    let nextOffsetX = currentOffsetX + directionX * stepX;
 
-      nextOffset = Math.min(
-        FLAME_DRIFT_MAX_OFFSET,
-        Math.max(-FLAME_DRIFT_MAX_OFFSET, nextOffset)
-      );
+    if (nextOffsetX > FLAME_DRIFT_X_MAX_OFFSET) {
+      const overshoot = nextOffsetX - FLAME_DRIFT_X_MAX_OFFSET;
+      nextOffsetX = FLAME_DRIFT_X_MAX_OFFSET - overshoot;
+    } else if (nextOffsetX < -FLAME_DRIFT_X_MAX_OFFSET) {
+      const overshoot = -FLAME_DRIFT_X_MAX_OFFSET - nextOffsetX;
+      nextOffsetX = -FLAME_DRIFT_X_MAX_OFFSET + overshoot;
+    }
 
-      this.flameOffsets[index] = nextOffset;
-      this.setFlameOffset(group, nextOffset);
-    });
+    nextOffsetX = Math.min(
+      FLAME_DRIFT_X_MAX_OFFSET,
+      Math.max(-FLAME_DRIFT_X_MAX_OFFSET, nextOffsetX)
+    );
+
+    const currentOffsetY = this.flameOffsetsY[index] ?? 0;
+    const directionY = Math.random() >= 0.5 ? 1 : -1;
+    let nextOffsetY = currentOffsetY + directionY * FLAME_DRIFT_Y_STEP;
+
+    if (nextOffsetY > FLAME_DRIFT_Y_MAX_OFFSET) {
+      const overshoot = nextOffsetY - FLAME_DRIFT_Y_MAX_OFFSET;
+      nextOffsetY = FLAME_DRIFT_Y_MAX_OFFSET - overshoot;
+    } else if (nextOffsetY < -FLAME_DRIFT_Y_MAX_OFFSET) {
+      const overshoot = -FLAME_DRIFT_Y_MAX_OFFSET - nextOffsetY;
+      nextOffsetY = -FLAME_DRIFT_Y_MAX_OFFSET + overshoot;
+    }
+
+    nextOffsetY = Math.min(
+      FLAME_DRIFT_Y_MAX_OFFSET,
+      Math.max(-FLAME_DRIFT_Y_MAX_OFFSET, nextOffsetY)
+    );
+
+    const currentOpacity = this.flameOpacities[index] ?? FLAME_OPACITY_MAX;
+    const opacityDirection = Math.random() >= 0.5 ? 1 : -1;
+    const opacityStep = this.getRandomOpacityStep();
+    let nextOpacity = currentOpacity + opacityDirection * opacityStep;
+
+    if (nextOpacity > FLAME_OPACITY_MAX) {
+      const overshoot = nextOpacity - FLAME_OPACITY_MAX;
+      nextOpacity = FLAME_OPACITY_MAX - overshoot;
+    } else if (nextOpacity < FLAME_OPACITY_MIN) {
+      const overshoot = FLAME_OPACITY_MIN - nextOpacity;
+      nextOpacity = FLAME_OPACITY_MIN + overshoot;
+    }
+
+    nextOpacity = Math.min(
+      FLAME_OPACITY_MAX,
+      Math.max(FLAME_OPACITY_MIN, nextOpacity)
+    );
+
+    this.flameOffsetsX[index] = nextOffsetX;
+    this.flameOffsetsY[index] = nextOffsetY;
+    this.flameOpacities[index] = nextOpacity;
+    this.setFlameState(group, nextOffsetX, nextOffsetY, nextOpacity);
   }
 
-  private setFlameOffset(group: SVGGElement, offset: number) {
-    group.style.transform = `translateX(${offset}px)`;
+  private setFlameState(
+    group: SVGGElement,
+    offsetX: number,
+    offsetY: number,
+    opacity: number
+  ) {
+    group.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
+    group.style.opacity = `${opacity}`;
   }
 
-  private getRandomDriftStep(): number {
+  private getRandomDriftXStep(): number {
     return (
-      Math.floor(Math.random() * (FLAME_DRIFT_MAX_STEP - FLAME_DRIFT_MIN_STEP + 1)) +
-      FLAME_DRIFT_MIN_STEP
+      Math.floor(
+        Math.random() * (FLAME_DRIFT_X_MAX_STEP - FLAME_DRIFT_X_MIN_STEP + 1)
+      ) + FLAME_DRIFT_X_MIN_STEP
+    );
+  }
+
+  private getRandomDriftIntervalMs(): number {
+    const jitter = this.getRandomInt(
+      FLAME_DRIFT_INTERVAL_JITTER_MIN_MS,
+      FLAME_DRIFT_INTERVAL_JITTER_MAX_MS
+    );
+    return FLAME_DRIFT_BASE_INTERVAL_MS + jitter;
+  }
+
+  private getInitialDriftDelayMs(index: number): number {
+    return (
+      index * FLAME_DRIFT_INITIAL_OFFSET_STEP_MS +
+      this.getRandomInt(0, FLAME_DRIFT_INITIAL_OFFSET_STEP_MS)
+    );
+  }
+
+  private getRandomOpacityStep(): number {
+    return this.getRandomOpacity(FLAME_OPACITY_MIN_STEP, FLAME_OPACITY_MAX_STEP);
+  }
+
+  private getRandomOpacity(min: number, max: number): number {
+    return min + Math.random() * (max - min);
+  }
+
+  private getRandomInt(min: number, max: number): number {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+  }
+
+  private isDriftRunning(): boolean {
+    return this.driftTimerIds.some((timerId) => timerId !== null);
+  }
+
+  private shouldRunFlameDrift(): boolean {
+    return (
+      this.ready &&
+      !this.destroyed &&
+      !this.options.paused &&
+      !this.options.reducedMotion &&
+      Boolean(this.parts)
     );
   }
 
