@@ -11,9 +11,5 @@ database_name = "bye4o"
 database_id = "ba908d15-ff7a-4b5d-96bb-a0caaf381469"
 
 [[r2_buckets]]
-binding = "TRACE_ARCHIVE"
-bucket_name = "bye4o-trace-archive"
-
-[[r2_buckets]]
 binding = "ARTICLE_ARCHIVE"
 bucket_name = "bye4o-article-archive"

@@ -698,7 +698,7 @@ body[data-route="fire"].fire-entry-revealing .fire-entry-gate {
   z-index: 65;
   display: grid;
   place-items: center;
-  padding: 1rem;
+  padding: clamp(0.9rem, 2vw, 1.4rem);
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.2s ease;
@@ -718,27 +718,29 @@ body[data-route="fire"].fire-entry-revealing .fire-entry-gate {
 .info-modal__panel {
   position: relative;
   z-index: 1;
-  width: min(460px, 92vw);
-  border-radius: 16px;
+  width: min(1040px, 96vw);
+  max-height: min(88vh, 860px);
+  border-radius: 18px;
   border: 1px solid rgba(181, 142, 78, 0.42);
   background: linear-gradient(170deg, rgba(23, 17, 11, 0.96), rgba(8, 6, 4, 0.94));
   box-shadow: 0 20px 52px rgba(0, 0, 0, 0.48);
-  padding: 1.1rem 1.05rem 1rem;
+  padding: clamp(1rem, 2.2vw, 1.45rem);
   display: grid;
-  gap: 0.65rem;
+  gap: 0.78rem;
+  overflow: auto;
 }
 
 .info-modal__close {
   position: absolute;
-  right: 0.55rem;
-  top: 0.42rem;
-  width: 30px;
-  height: 30px;
+  right: 0.68rem;
+  top: 0.56rem;
+  width: 34px;
+  height: 34px;
   border: 0;
   border-radius: 50%;
   background: transparent;
   color: rgba(188, 148, 83, 0.9);
-  font-size: 1.05rem;
+  font-size: 1.2rem;
   line-height: 1;
   cursor: pointer;
 }
@@ -760,14 +762,70 @@ body[data-route="fire"].fire-entry-revealing .fire-entry-gate {
 .info-modal__title {
   margin: 0;
   color: var(--gold-bright);
-  font-size: 1.2rem;
+  font-size: clamp(1.3rem, 2.1vw, 1.75rem);
+  padding-right: 2rem;
 }
 
-.info-modal__text {
+.info-modal__intro {
+  margin: 0;
+  color: var(--text-soft);
+  line-height: 1.66;
+  font-size: 0.95rem;
+}
+
+.info-modal__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.72rem;
+}
+
+.info-modal__card {
+  border-radius: 14px;
+  border: 1px solid rgba(181, 142, 78, 0.28);
+  background: linear-gradient(155deg, rgba(16, 12, 8, 0.86), rgba(8, 6, 4, 0.82));
+  padding: 0.72rem 0.78rem;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.info-modal__card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.info-modal__card-title {
+  margin: 0;
+  color: var(--gold-bright);
+  font-size: 0.98rem;
+  line-height: 1.35;
+}
+
+.info-modal__route {
+  border: 1px solid rgba(181, 142, 78, 0.32);
+  border-radius: 999px;
+  padding: 0.14rem 0.45rem;
+  color: rgba(181, 142, 78, 0.9);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  font-size: 0.68rem;
+  line-height: 1.3;
+  white-space: nowrap;
+}
+
+.info-modal__card-line {
   margin: 0;
   color: var(--text-soft);
   line-height: 1.62;
-  font-size: 0.92rem;
+  font-size: 0.88rem;
+}
+
+.info-modal__label {
+  margin-right: 0.35rem;
+  color: var(--gold-main);
+  letter-spacing: 0.06em;
+  font-size: 0.73rem;
+  text-transform: uppercase;
 }
 
 body.info-modal-open {
@@ -1589,6 +1647,10 @@ body[data-route="fire"] .flame-monument {
   .carvings-articles-clear {
     justify-self: start;
   }
+
+  .info-modal__grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 640px) {
@@ -1674,7 +1736,34 @@ body[data-route="fire"] .flame-monument {
   }
 
   .info-modal__panel {
+    width: min(100%, 96vw);
+    max-height: 88vh;
+    border-radius: 14px;
     padding: 0.95rem 0.9rem 0.92rem;
+  }
+
+  .info-modal__close {
+    right: 0.46rem;
+    top: 0.38rem;
+    width: 32px;
+    height: 32px;
+  }
+
+  .info-modal__title {
+    font-size: 1.2rem;
+    padding-right: 1.8rem;
+  }
+
+  .info-modal__intro {
+    font-size: 0.9rem;
+  }
+
+  .info-modal__card {
+    padding: 0.66rem 0.68rem;
+  }
+
+  .info-modal__route {
+    font-size: 0.64rem;
   }
 
 }

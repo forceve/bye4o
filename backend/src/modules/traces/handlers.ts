@@ -68,7 +68,7 @@ export async function handleListTraces(request: Request, env: Env): Promise<Resp
 export async function handleCreateTrace(
   request: Request,
   env: Env,
-  ctx: ExecutionContext,
+  _ctx: ExecutionContext,
   auth: TraceAuthContext
 ): Promise<Response> {
   const payload = await readJsonObject(request);
@@ -100,7 +100,6 @@ export async function handleCreateTrace(
   }
 
   clearTraceDraftCookie(auth.setCookies, auth.url);
-  ctx.waitUntil(archiveTrace(env, trace, auth.anonUserId));
 
   return json({ item: trace }, 201);
 }
@@ -182,22 +181,4 @@ function toTraceItem(row: TraceRow): TraceItem {
     message: row.message,
     createdAt: row.created_at,
   };
-}
-
-async function archiveTrace(env: Env, trace: TraceItem, anonUserId: string): Promise<void> {
-  if (!env.TRACE_ARCHIVE) {
-    return;
-  }
-
-  const dayKey = trace.createdAt.slice(0, 10);
-  const key = `traces/${dayKey}/${trace.id}.json`;
-  const payload = JSON.stringify({
-    ...trace,
-    anonUserId,
-    archivedAt: new Date().toISOString(),
-  });
-
-  await env.TRACE_ARCHIVE.put(key, payload, {
-    httpMetadata: { contentType: "application/json; charset=utf-8" },
-  });
 }

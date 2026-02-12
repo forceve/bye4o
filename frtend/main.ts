@@ -1176,11 +1176,13 @@ function renderArticleDetailPage(route: ArticleDetailRoutePath): string {
     .join("");
 
   const tocMarkup = article.sections
-    .map(
-      (section) =>
-        `<li><a href="#${escapeAttribute(section.id)}">${escapeHtml(section.heading)}</a></li>`
-    )
+    .map((section, index) => {
+      const fullHeading = section.heading.trim();
+      const tocLabel = formatArticleTocLabel(fullHeading, index);
+      return `<li><a href="#${escapeAttribute(section.id)}" title="${escapeAttribute(fullHeading)}">${escapeHtml(tocLabel)}</a></li>`;
+    })
     .join("");
+  const shouldRenderToc = article.sections.length > 1;
 
   const relatedLinksMarkup = article.links
     .map((link) => {
@@ -1226,12 +1228,18 @@ function renderArticleDetailPage(route: ArticleDetailRoutePath): string {
         </p>
       </header>
 
+      ${
+        shouldRenderToc
+          ? `
       <nav class="article-detail__toc" aria-label="${articleCopy.onThisPage}">
         <p class="article-detail__toc-title">${articleCopy.onThisPage}</p>
         <ol>
           ${tocMarkup}
         </ol>
       </nav>
+      `
+          : ""
+      }
 
       <div class="article-detail__body">
         ${sectionsMarkup}
@@ -2097,6 +2105,20 @@ function formatArticleDate(rawDate: string): string {
     month: "2-digit",
     day: "2-digit",
   }).format(date);
+}
+
+function formatArticleTocLabel(heading: string, index: number): string {
+  const normalized = heading.replace(/\s+/g, " ").trim();
+  if (!normalized) {
+    return currentLocale === "zh-CN" ? `第${index + 1}节` : `Section ${index + 1}`;
+  }
+
+  const maxLength = currentLocale === "zh-CN" ? 26 : 44;
+  if (normalized.length <= maxLength) {
+    return normalized;
+  }
+
+  return `${normalized.slice(0, maxLength).trimEnd()}...`;
 }
 
 function isExternalLink(value: string): boolean {

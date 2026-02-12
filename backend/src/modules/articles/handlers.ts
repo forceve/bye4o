@@ -86,7 +86,7 @@ export async function handleGetArticle(
 }
 
 function resolveArticleBucket(env: Env): R2Bucket {
-  const bucket = env.ARTICLE_ARCHIVE ?? env.TRACE_ARCHIVE;
+  const bucket = env.ARTICLE_ARCHIVE;
   if (!bucket) {
     throw new HttpError(
       503,
