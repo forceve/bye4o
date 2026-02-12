@@ -1,5 +1,6 @@
 import { Env } from "../../types";
 import { HttpError } from "../../shared/errors";
+import { ErrorCodes } from "../../shared/errorCodes";
 import { json, readJsonObject } from "../../shared/http";
 import {
   clearTraceDraftCookie,
@@ -126,7 +127,11 @@ export async function handleUpdateTraceSession(
   const hasMessage = Object.hasOwn(payload, "message");
 
   if (!hasDisplayName && !hasMessage) {
-    throw new HttpError(400, "displayName 或 message 至少提供一个字段。");
+    throw new HttpError(
+      400,
+      ErrorCodes.TraceSessionEmptyUpdate,
+      "Provide at least one field: displayName or message."
+    );
   }
 
   const currentDraft = parseDraftCookie(auth.cookies[TRACE_DRAFT_COOKIE]);

@@ -1,4 +1,5 @@
 import { handleHealth } from "./modules/health/handlers";
+import { handleGetArticle, handleListArticles } from "./modules/articles/handlers";
 import { ensureAnonUserId } from "./modules/traces/cookies";
 import {
   handleCreateTrace,
@@ -8,14 +9,17 @@ import {
 } from "./modules/traces/handlers";
 import {
   HEALTH_ROUTE,
+  ARTICLES_ROUTE,
   TRACES_ROUTE,
   TRACES_SESSION_ROUTE,
   isApiPath,
+  parseArticleIdFromPath,
   isTracesPath,
 } from "./routes";
 import { buildPreflightResponse, withCommonHeaders } from "./shared/cors";
 import { parseCookieHeader } from "./shared/cookies";
 import { HttpError } from "./shared/errors";
+import { ErrorCodes } from "./shared/errorCodes";
 import { json } from "./shared/http";
 import { Env } from "./types";
 
@@ -27,8 +31,10 @@ export default {
     if (!isApiPath(pathname)) {
       return json(
         {
-          error: "NOT_FOUND",
+          error: ErrorCodes.NotFound,
+          code: ErrorCodes.NotFound,
           message: "Route not found.",
+          details: null,
         },
         404
       );
@@ -47,6 +53,23 @@ export default {
 
       if (pathname === HEALTH_ROUTE && request.method === "GET") {
         response = handleHealth();
+      } else if (pathname === ARTICLES_ROUTE && request.method === "GET") {
+        response = await handleListArticles(request, env);
+      } else if (pathname.startsWith(`${ARTICLES_ROUTE}/`) && request.method === "GET") {
+        const articleId = parseArticleIdFromPath(pathname);
+        if (!articleId) {
+          response = json(
+            {
+              error: ErrorCodes.NotFound,
+              code: ErrorCodes.NotFound,
+              message: "Route not found.",
+              details: null,
+            },
+            404
+          );
+        } else {
+          response = await handleGetArticle(request, env, articleId);
+        }
       } else if (pathname === TRACES_ROUTE && request.method === "GET") {
         response = await handleListTraces(request, env);
       } else if (pathname === TRACES_ROUTE && request.method === "POST") {
@@ -73,8 +96,10 @@ export default {
       } else {
         response = json(
           {
-            error: "NOT_FOUND",
+            error: ErrorCodes.NotFound,
+            code: ErrorCodes.NotFound,
             message: "Route not found.",
+            details: null,
           },
           404
         );
@@ -86,7 +111,9 @@ export default {
         const response = json(
           {
             error: "BAD_REQUEST",
+            code: error.code,
             message: error.message,
+            details: error.details ?? null,
           },
           error.status
         );
@@ -95,8 +122,10 @@ export default {
 
       const response = json(
         {
-          error: "INTERNAL_ERROR",
+          error: ErrorCodes.InternalError,
+          code: ErrorCodes.InternalError,
           message: "Unexpected server error.",
+          details: null,
         },
         500
       );

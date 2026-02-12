@@ -7,6 +7,8 @@ interface CreateHoverTopNavOptions<TPath extends string = string> {
   items: TopNavItem<TPath>[];
   activePath: TPath;
   onNavigate: (path: TPath) => void;
+  triggerAriaLabel?: string;
+  panelAriaLabel?: string;
 }
 
 export interface HoverTopNavController {
@@ -19,6 +21,8 @@ export function createHoverTopNav<TPath extends string = string>({
   items,
   activePath,
   onNavigate,
+  triggerAriaLabel = "显示导航",
+  panelAriaLabel = "主导航",
 }: CreateHoverTopNavOptions<TPath>): HTMLElement & { controller: HoverTopNavController } {
   const shell = document.createElement("header");
   shell.className = "hover-top-nav";
@@ -26,11 +30,11 @@ export function createHoverTopNav<TPath extends string = string>({
   const trigger = document.createElement("button");
   trigger.type = "button";
   trigger.className = "hover-top-nav__trigger";
-  trigger.setAttribute("aria-label", "显示导航");
+  trigger.setAttribute("aria-label", triggerAriaLabel);
 
   const panel = document.createElement("nav");
   panel.className = "hover-top-nav__panel";
-  panel.setAttribute("aria-label", "主导航");
+  panel.setAttribute("aria-label", panelAriaLabel);
 
   const list = document.createElement("ul");
   list.className = "hover-top-nav__list";

@@ -1,11 +1,13 @@
 export class ApiError extends Error {
   public readonly status: number;
+  public readonly code: string | null;
   public readonly details: unknown;
 
-  constructor(message: string, status: number, details: unknown) {
+  constructor(message: string, status: number, code: string | null, details: unknown) {
     super(message);
     this.name = "ApiError";
     this.status = status;
+    this.code = code;
     this.details = details;
   }
 }
@@ -34,10 +36,12 @@ export async function apiFetch<T>(path: string, options: ApiFetchOptions = {}): 
   const payload = await parseJsonSafely(response);
 
   if (!response.ok) {
+    const code = extractCode(payload);
+    const details = extractDetails(payload);
     const message =
       extractMessage(payload) ??
       `Request failed with status ${response.status}`;
-    throw new ApiError(message, response.status, payload);
+    throw new ApiError(message, response.status, code, details);
   }
 
   return payload as T;
@@ -93,4 +97,21 @@ function extractMessage(payload: unknown): string | null {
 
   const message = (payload as Record<string, unknown>).message;
   return typeof message === "string" && message.trim() ? message : null;
+}
+
+function extractCode(payload: unknown): string | null {
+  if (!payload || typeof payload !== "object") {
+    return null;
+  }
+
+  const code = (payload as Record<string, unknown>).code;
+  return typeof code === "string" && code.trim() ? code : null;
+}
+
+function extractDetails(payload: unknown): unknown {
+  if (!payload || typeof payload !== "object") {
+    return null;
+  }
+
+  return (payload as Record<string, unknown>).details ?? null;
 }

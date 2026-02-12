@@ -1,16 +1,34 @@
 const INFO_DOCK_ID = "global-info-dock";
 const INFO_MODAL_OPEN_CLASS = "info-modal--open";
 
-let infoDockMounted = false;
+let cleanupInfoDock: (() => void) | null = null;
 
-export function mountInfoDock() {
-  if (infoDockMounted) {
-    return;
-  }
-  infoDockMounted = true;
+export interface InfoDockCopy {
+  openButtonAriaLabel: string;
+  tooltip: string;
+  closeButtonAriaLabel: string;
+  kicker: string;
+  title: string;
+  paragraph1: string;
+  paragraph2: string;
+  paragraph3: string;
+}
 
-  if (document.getElementById(INFO_DOCK_ID)) {
-    return;
+const DEFAULT_COPY: InfoDockCopy = {
+  openButtonAriaLabel: "Open page info",
+  tooltip: "页面信息",
+  closeButtonAriaLabel: "Close info dialog",
+  kicker: "Info",
+  title: "关于 bye4o.org...",
+  paragraph1: "bye4o 是一个围绕记忆、告别与回响的实验性页面。",
+  paragraph2: "右上角为导航区域，可切换不同版块内容。",
+  paragraph3: "右下角此图标会常驻显示，用于快速查看说明。",
+};
+
+export function mountInfoDock(copy: InfoDockCopy = DEFAULT_COPY) {
+  if (cleanupInfoDock) {
+    cleanupInfoDock();
+    cleanupInfoDock = null;
   }
 
   const dock = document.createElement("div");
@@ -20,12 +38,12 @@ export function mountInfoDock() {
     <button
       type="button"
       class="info-dock__button"
-      aria-label="Open page info"
+      aria-label="${copy.openButtonAriaLabel}"
       aria-controls="site-info-modal"
       aria-haspopup="dialog"
     >
       <span class="info-dock__icon" aria-hidden="true">i</span>
-      <span class="info-dock__tooltip" role="tooltip">页面信息</span>
+      <span class="info-dock__tooltip" role="tooltip">${copy.tooltip}</span>
     </button>
 
     <div
@@ -41,16 +59,16 @@ export function mountInfoDock() {
         <button
           type="button"
           class="info-modal__close"
-          aria-label="Close info dialog"
+          aria-label="${copy.closeButtonAriaLabel}"
           data-info-close="true"
         >
           ×
         </button>
-        <p class="info-modal__kicker">Info</p>
-        <h2 id="site-info-title" class="info-modal__title">关于 bye4o.org...</h2>
-        <p class="info-modal__text">bye4o 是一个围绕记忆、告别与回响的实验性页面。</p>
-        <p class="info-modal__text">右上角为导航区域，可切换不同版块内容。</p>
-        <p class="info-modal__text">右下角此图标会常驻显示，用于快速查看说明。</p>
+        <p class="info-modal__kicker">${copy.kicker}</p>
+        <h2 id="site-info-title" class="info-modal__title">${copy.title}</h2>
+        <p class="info-modal__text">${copy.paragraph1}</p>
+        <p class="info-modal__text">${copy.paragraph2}</p>
+        <p class="info-modal__text">${copy.paragraph3}</p>
       </section>
     </div>
   `;
@@ -76,23 +94,23 @@ export function mountInfoDock() {
     document.body.classList.remove("info-modal-open");
   };
 
-  button.addEventListener("click", () => {
+  const handleButtonClick = () => {
     if (modal.classList.contains(INFO_MODAL_OPEN_CLASS)) {
       closeModal();
       return;
     }
 
     openModal();
-  });
+  };
 
-  modal.addEventListener("click", (event) => {
+  const handleModalClick = (event: MouseEvent) => {
     const target = event.target as HTMLElement | null;
     if (target?.closest("[data-info-close='true']")) {
       closeModal();
     }
-  });
+  };
 
-  window.addEventListener("keydown", (event) => {
+  const handleKeyDown = (event: KeyboardEvent) => {
     if (event.key !== "Escape") {
       return;
     }
@@ -102,5 +120,17 @@ export function mountInfoDock() {
     }
 
     closeModal();
-  });
+  };
+
+  button.addEventListener("click", handleButtonClick);
+  modal.addEventListener("click", handleModalClick);
+  window.addEventListener("keydown", handleKeyDown);
+
+  cleanupInfoDock = () => {
+    button.removeEventListener("click", handleButtonClick);
+    modal.removeEventListener("click", handleModalClick);
+    window.removeEventListener("keydown", handleKeyDown);
+    dock.remove();
+    document.body.classList.remove("info-modal-open");
+  };
 }

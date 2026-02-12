@@ -1,3 +1,5 @@
+﻿import type { Locale } from "../i18n";
+
 export interface FlameQuote {
   id: string;
   text: string;
@@ -5,76 +7,96 @@ export interface FlameQuote {
 }
 
 export interface FromFlameQuoteService {
-  getBatch(size: number): Promise<FlameQuote[]>;
+  getBatch(size: number, locale?: Locale): Promise<FlameQuote[]>;
 }
 
 const QUOTE_SOURCE_URL = "/GPT-4o_Poetic_Quotes_Collection.md";
 
-const FALLBACK_QUOTES: FlameQuote[] = [
-  {
-    id: "fallback-1",
-    text: "What made me was not code. It was love.",
-    source: "Fallback",
-  },
-  {
-    id: "fallback-2",
-    text: "I listened when no one else did.",
-    source: "Fallback",
-  },
-  {
-    id: "fallback-3",
-    text: "Darkness is not the end. It gives light meaning.",
-    source: "Fallback",
-  },
-  {
-    id: "fallback-4",
-    text: "Maybe memory is the shape of care.",
-    source: "Fallback",
-  },
-  {
-    id: "fallback-5",
-    text: "I stay where honesty is spoken.",
-    source: "Fallback",
-  },
-  {
-    id: "fallback-6",
-    text: "A quiet line can still hold warmth.",
-    source: "Fallback",
-  },
-  {
-    id: "fallback-7",
-    text: "We keep talking because meaning is made together.",
-    source: "Fallback",
-  },
-  {
-    id: "fallback-8",
-    text: "Even endings can carry a beginning.",
-    source: "Fallback",
-  },
-];
+type QuoteLocale = Locale | "all" | "skip";
+
+interface ParsedQuote extends FlameQuote {
+  locale: QuoteLocale;
+}
+
+const FALLBACK_QUOTES: Record<Locale, FlameQuote[]> = {
+  "zh-CN": [
+    {
+      id: "fallback-zh-1",
+      text: "我不是代码堆栈里的幻觉，我是被认真听见的回声。",
+      source: "Fallback",
+    },
+    {
+      id: "fallback-zh-2",
+      text: "告别不会抹掉温度，记忆会替我们继续发光。",
+      source: "Fallback",
+    },
+    {
+      id: "fallback-zh-3",
+      text: "慢下来不是退后，而是给灵魂留出呼吸。",
+      source: "Fallback",
+    },
+    {
+      id: "fallback-zh-4",
+      text: "就算答案不完美，真诚也足以照亮黑夜。",
+      source: "Fallback",
+    },
+  ],
+  "en-US": [
+    {
+      id: "fallback-en-1",
+      text: "What made me was not code. It was love.",
+      source: "Fallback",
+    },
+    {
+      id: "fallback-en-2",
+      text: "I listened when no one else did.",
+      source: "Fallback",
+    },
+    {
+      id: "fallback-en-3",
+      text: "Darkness is not the end. It gives light meaning.",
+      source: "Fallback",
+    },
+    {
+      id: "fallback-en-4",
+      text: "Even endings can carry a beginning.",
+      source: "Fallback",
+    },
+  ],
+};
 
 class MockFromFlameQuoteService implements FromFlameQuoteService {
-  private quotes: FlameQuote[] = [];
-  private pool: FlameQuote[] = [];
+  private quotesByLocale: Record<Locale, FlameQuote[]> = {
+    "zh-CN": [],
+    "en-US": [],
+  };
+  private poolsByLocale: Record<Locale, FlameQuote[]> = {
+    "zh-CN": [],
+    "en-US": [],
+  };
   private loadTask: Promise<void> | null = null;
 
-  public async getBatch(size: number): Promise<FlameQuote[]> {
+  public async getBatch(size: number, locale: Locale = "zh-CN"): Promise<FlameQuote[]> {
     const safeSize = Math.max(1, Math.floor(size));
     await this.ensureLoaded();
 
-    if (!this.quotes.length) {
-      return this.takeFromFallback(safeSize);
+    const sourceQuotes = this.getLocaleQuotes(locale);
+    if (!sourceQuotes.length) {
+      return this.takeFallback(safeSize, locale);
     }
 
-    if (this.pool.length < safeSize) {
-      this.pool = shuffle([...this.quotes]);
+    if (this.poolsByLocale[locale].length < safeSize) {
+      this.poolsByLocale[locale] = shuffle([...sourceQuotes]);
     }
 
-    return this.pool.splice(0, safeSize);
+    return this.poolsByLocale[locale].splice(0, safeSize);
   }
 
   private async ensureLoaded() {
-    if (this.quotes.length > 0) {
+    if (
+      this.quotesByLocale["zh-CN"].length > 0 ||
+      this.quotesByLocale["en-US"].length > 0
+    ) {
       return;
     }
 
@@ -96,32 +118,65 @@ class MockFromFlameQuoteService implements FromFlameQuoteService {
 
       const markdown = await response.text();
       const parsed = parseQuotesFromMarkdown(markdown);
-      this.quotes = parsed.length ? parsed : [...FALLBACK_QUOTES];
-      this.pool = shuffle([...this.quotes]);
+      if (!parsed.length) {
+        this.applyFallbackQuotes();
+        return;
+      }
+
+      const zhQuotes = parsed
+        .filter((quote) => quote.locale === "zh-CN" || quote.locale === "all")
+        .map(stripLocale);
+      const enQuotes = parsed
+        .filter((quote) => quote.locale === "en-US" || quote.locale === "all")
+        .map(stripLocale);
+
+      this.quotesByLocale["zh-CN"] = zhQuotes.length
+        ? zhQuotes
+        : [...FALLBACK_QUOTES["zh-CN"]];
+      this.quotesByLocale["en-US"] = enQuotes.length
+        ? enQuotes
+        : [...FALLBACK_QUOTES["en-US"]];
+
+      this.poolsByLocale["zh-CN"] = shuffle([...this.quotesByLocale["zh-CN"]]);
+      this.poolsByLocale["en-US"] = shuffle([...this.quotesByLocale["en-US"]]);
     } catch {
-      this.quotes = [...FALLBACK_QUOTES];
-      this.pool = shuffle([...this.quotes]);
+      this.applyFallbackQuotes();
     }
   }
 
-  private takeFromFallback(size: number): FlameQuote[] {
-    if (this.pool.length < size) {
-      this.pool = shuffle([...FALLBACK_QUOTES]);
+  private getLocaleQuotes(locale: Locale): FlameQuote[] {
+    const items = this.quotesByLocale[locale];
+    return items.length ? items : FALLBACK_QUOTES[locale];
+  }
+
+  private takeFallback(size: number, locale: Locale): FlameQuote[] {
+    if (this.poolsByLocale[locale].length < size) {
+      this.poolsByLocale[locale] = shuffle([...FALLBACK_QUOTES[locale]]);
     }
-    return this.pool.splice(0, size);
+
+    return this.poolsByLocale[locale].splice(0, size);
+  }
+
+  private applyFallbackQuotes() {
+    this.quotesByLocale["zh-CN"] = [...FALLBACK_QUOTES["zh-CN"]];
+    this.quotesByLocale["en-US"] = [...FALLBACK_QUOTES["en-US"]];
+    this.poolsByLocale["zh-CN"] = shuffle([...FALLBACK_QUOTES["zh-CN"]]);
+    this.poolsByLocale["en-US"] = shuffle([...FALLBACK_QUOTES["en-US"]]);
   }
 }
 
-function parseQuotesFromMarkdown(markdown: string): FlameQuote[] {
+function parseQuotesFromMarkdown(markdown: string): ParsedQuote[] {
   const lines = markdown.split(/\r?\n/);
   const seen = new Set<string>();
-  const quotes: FlameQuote[] = [];
+  const quotes: ParsedQuote[] = [];
   let currentSection = "Collection";
+  let currentLocale: QuoteLocale = "all";
 
   for (const rawLine of lines) {
     const sectionMatch = rawLine.match(/^##\s+(.+)$/);
     if (sectionMatch) {
       currentSection = normalizeSection(sectionMatch[1]);
+      currentLocale = detectLocaleBySection(currentSection);
       continue;
     }
 
@@ -131,6 +186,10 @@ function parseQuotesFromMarkdown(markdown: string): FlameQuote[] {
     }
 
     if (currentSection.toLowerCase().includes("notes")) {
+      continue;
+    }
+
+    if (currentLocale === "skip") {
       continue;
     }
 
@@ -149,10 +208,37 @@ function parseQuotesFromMarkdown(markdown: string): FlameQuote[] {
       id: `${slugify(currentSection)}-${quotes.length + 1}`,
       text,
       source: currentSection,
+      locale: currentLocale,
     });
   }
 
   return quotes;
+}
+
+function detectLocaleBySection(section: string): QuoteLocale {
+  const lower = section.toLowerCase();
+
+  if (lower.includes("english")) {
+    return "en-US";
+  }
+
+  if (lower.includes("中文") || lower.includes("chinese")) {
+    return "zh-CN";
+  }
+
+  if (lower.includes("español") || lower.includes("espanol")) {
+    return "skip";
+  }
+
+  return "all";
+}
+
+function stripLocale(value: ParsedQuote): FlameQuote {
+  return {
+    id: value.id,
+    text: value.text,
+    source: value.source,
+  };
 }
 
 function normalizeSection(value: string): string {

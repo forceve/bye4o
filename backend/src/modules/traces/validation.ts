@@ -1,4 +1,5 @@
 import { HttpError } from "../../shared/errors";
+import { ErrorCodes } from "../../shared/errorCodes";
 import {
   DEFAULT_TRACE_QUERY_LIMIT,
   MAX_TRACE_MESSAGE_LENGTH,
@@ -9,13 +10,22 @@ import {
 
 export function normalizeTraceName(value: unknown): string {
   if (typeof value !== "string") {
-    throw new HttpError(400, "displayName 必须是字符串。");
+    throw new HttpError(
+      400,
+      ErrorCodes.TraceDisplayNameType,
+      "displayName must be a string."
+    );
   }
 
   const normalized = value.trim();
   const length = Array.from(normalized).length;
   if (length > MAX_TRACE_NAME_LENGTH) {
-    throw new HttpError(400, `displayName 不能超过 ${MAX_TRACE_NAME_LENGTH} 个字符。`);
+    throw new HttpError(
+      400,
+      ErrorCodes.TraceDisplayNameTooLong,
+      `displayName must be at most ${MAX_TRACE_NAME_LENGTH} characters.`,
+      { maxLength: MAX_TRACE_NAME_LENGTH }
+    );
   }
 
   return normalized;
@@ -23,18 +33,23 @@ export function normalizeTraceName(value: unknown): string {
 
 export function normalizeTraceMessage(value: unknown, required: boolean): string {
   if (typeof value !== "string") {
-    throw new HttpError(400, "message 必须是字符串。");
+    throw new HttpError(400, ErrorCodes.TraceMessageType, "message must be a string.");
   }
 
   const normalized = value.trim();
   const length = Array.from(normalized).length;
 
   if (required && length === 0) {
-    throw new HttpError(400, "message 不能为空。");
+    throw new HttpError(400, ErrorCodes.TraceMessageEmpty, "message cannot be empty.");
   }
 
   if (length > MAX_TRACE_MESSAGE_LENGTH) {
-    throw new HttpError(400, `message 不能超过 ${MAX_TRACE_MESSAGE_LENGTH} 个字符。`);
+    throw new HttpError(
+      400,
+      ErrorCodes.TraceMessageTooLong,
+      `message must be at most ${MAX_TRACE_MESSAGE_LENGTH} characters.`,
+      { maxLength: MAX_TRACE_MESSAGE_LENGTH }
+    );
   }
 
   return normalized;
