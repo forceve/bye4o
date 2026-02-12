@@ -1,20 +1,20 @@
 import { handleHealth } from "./modules/health/handlers";
 import { handleGetArticle, handleListArticles } from "./modules/articles/handlers";
-import { ensureAnonUserId } from "./modules/traces/cookies";
+import { ensureAnonUserId } from "./modules/embers/cookies";
 import {
-  handleCreateTrace,
-  handleGetTraceSession,
-  handleListTraces,
-  handleUpdateTraceSession,
-} from "./modules/traces/handlers";
+  handleCreateEmber,
+  handleGetEmberSession,
+  handleListEmbers,
+  handleUpdateEmberSession,
+} from "./modules/embers/handlers";
 import {
   HEALTH_ROUTE,
   ARTICLES_ROUTE,
-  TRACES_ROUTE,
-  TRACES_SESSION_ROUTE,
+  EMBERS_ROUTE,
+  EMBERS_SESSION_ROUTE,
   isApiPath,
   parseArticleIdFromPath,
-  isTracesPath,
+  isEmbersPath,
 } from "./routes";
 import { buildPreflightResponse, withCommonHeaders } from "./shared/cors";
 import { parseCookieHeader } from "./shared/cookies";
@@ -46,7 +46,7 @@ export default {
 
     const cookies = parseCookieHeader(request.headers.get("Cookie"));
     const setCookies: string[] = [];
-    const anonUserId = isTracesPath(pathname) ? ensureAnonUserId(cookies, setCookies, url) : "";
+    const anonUserId = isEmbersPath(pathname) ? ensureAnonUserId(cookies, setCookies, url) : "";
 
     try {
       let response: Response;
@@ -70,24 +70,24 @@ export default {
         } else {
           response = await handleGetArticle(request, env, articleId);
         }
-      } else if (pathname === TRACES_ROUTE && request.method === "GET") {
-        response = await handleListTraces(request, env);
-      } else if (pathname === TRACES_ROUTE && request.method === "POST") {
-        response = await handleCreateTrace(request, env, ctx, {
+      } else if (pathname === EMBERS_ROUTE && request.method === "GET") {
+        response = await handleListEmbers(request, env);
+      } else if (pathname === EMBERS_ROUTE && request.method === "POST") {
+        response = await handleCreateEmber(request, env, ctx, {
           anonUserId,
           cookies,
           setCookies,
           url,
         });
-      } else if (pathname === TRACES_SESSION_ROUTE && request.method === "GET") {
-        response = handleGetTraceSession({
+      } else if (pathname === EMBERS_SESSION_ROUTE && request.method === "GET") {
+        response = handleGetEmberSession({
           anonUserId,
           cookies,
           setCookies,
           url,
         });
-      } else if (pathname === TRACES_SESSION_ROUTE && request.method === "PUT") {
-        response = await handleUpdateTraceSession(request, {
+      } else if (pathname === EMBERS_SESSION_ROUTE && request.method === "PUT") {
+        response = await handleUpdateEmberSession(request, {
           anonUserId,
           cookies,
           setCookies,

@@ -8,7 +8,7 @@ Landing page with a reusable `FlameMonument` component that combines
 2. `npm run dev`
 
 ## API config
-`traces` 页面通过 `VITE_API_BASE` 请求后端。
+`embers` 页面通过 `VITE_API_BASE` 请求后端。
 
 1. 复制 `.env.example` 为 `.env`
 2. 设置：

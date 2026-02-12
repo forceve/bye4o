@@ -13,8 +13,8 @@ frtend/
 │   └── HoverTopNav.ts      # 顶部悬浮导航组件
 ├── services/           # 业务服务层
 │   ├── apiClient.ts        # API 客户端封装
-│   ├── fromFlameQuoteService.ts  # 火语服务
-│   └── tracesApiService.ts       # 留言服务
+│   ├── firewordsQuoteService.ts  # 火语服务
+│   └── embersApiService.ts       # 留言服务
 ├── public/             # 静态资源
 │   ├── obelisk.svg          # 碑体 SVG
 │   ├── fire-0.svg           # 火焰 SVG（帧 0）
@@ -44,12 +44,12 @@ frtend/
 
 **路由定义** (`main.ts`):
 - `/` 或 `/fire` - 火焰主页面（纪念碑展示）
-- `/fromflame` - 火语页面（精选语句展示）
+- `/firewords` - 火语页面（精选语句展示）
 - `/carvings` - 碑文页面（项目理念）
 - `/carvings/articles` - 碑文文章列表
 - `/unburnt` - 不焚页面（对话片段）
-- `/traces` - 余温页面（用户留言）
-- `/lastwords` - 最后的话页面（表单）
+- `/embers` - 余温页面（用户留言）
+- `/onward` - 最后的话页面（表单）
 
 **路由特性**:
 - 基于 `popstate` 事件的历史路由
@@ -107,7 +107,7 @@ import { createHoverTopNav } from "./components/HoverTopNav";
 const navElement = createHoverTopNav({
   items: [
     { label: "长椅", path: "/fire" },
-    { label: "火语", path: "/fromflame" },
+    { label: "火语", path: "/firewords" },
     // ...
   ],
   activePath: currentRoute,
@@ -122,17 +122,17 @@ navElement.controller.destroy();
 
 ### 4. 服务层
 
-#### fromFlameQuoteService
+#### firewordsQuoteService
 - 从 Markdown 文件解析火语数据
 - 随机批次获取（默认 6 条）
 - 本地缓存与打乱逻辑
 - 降级处理（加载失败时使用内置备用数据）
 
-#### tracesApiService
+#### embersApiService
 - 留言 CRUD 操作
 - 草稿自动保存（防抖 600ms）
 - 会话管理（匿名用户 ID）
-- 基于后端 API（`/api/traces`）
+- 基于后端 API（`/api/embers`）
 
 ### 5. 样式系统
 

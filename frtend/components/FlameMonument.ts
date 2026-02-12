@@ -41,6 +41,8 @@ const FLAME_OPACITY_MIN = 0.6;
 const FLAME_OPACITY_MAX = 1;
 const FLAME_OPACITY_MIN_STEP = 0.04;
 const FLAME_OPACITY_MAX_STEP = 0.1;
+const FLAME_BRIGHTNESS_MIN = 1;
+const FLAME_BRIGHTNESS_MAX = 1.22;
 
 export class FlameMonument {
   public readonly el: HTMLDivElement;
@@ -329,6 +331,7 @@ export class FlameMonument {
   ) {
     group.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
     group.style.opacity = `${opacity}`;
+    group.style.filter = `brightness(${this.getBrightnessForOpacity(opacity)})`;
   }
 
   private getRandomDriftXStep(): number {
@@ -360,6 +363,22 @@ export class FlameMonument {
 
   private getRandomOpacity(min: number, max: number): number {
     return min + Math.random() * (max - min);
+  }
+
+  private getBrightnessForOpacity(opacity: number): string {
+    const opacityRange = FLAME_OPACITY_MAX - FLAME_OPACITY_MIN;
+    if (opacityRange <= 0) {
+      return `${FLAME_BRIGHTNESS_MIN}`;
+    }
+
+    const normalizedOpacity = Math.min(
+      1,
+      Math.max(0, (opacity - FLAME_OPACITY_MIN) / opacityRange)
+    );
+    const brightnessRange = FLAME_BRIGHTNESS_MAX - FLAME_BRIGHTNESS_MIN;
+    const brightness =
+      FLAME_BRIGHTNESS_MAX - normalizedOpacity * brightnessRange;
+    return brightness.toFixed(3);
   }
 
   private getRandomInt(min: number, max: number): number {

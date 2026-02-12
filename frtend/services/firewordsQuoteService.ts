@@ -1,4 +1,4 @@
-﻿import type { Locale } from "../i18n";
+import type { Locale } from "../i18n";
 
 export interface FlameQuote {
   id: string;
@@ -6,7 +6,7 @@ export interface FlameQuote {
   source: string;
 }
 
-export interface FromFlameQuoteService {
+export interface FirewordsQuoteService {
   getBatch(size: number, locale?: Locale): Promise<FlameQuote[]>;
 }
 
@@ -65,7 +65,7 @@ const FALLBACK_QUOTES: Record<Locale, FlameQuote[]> = {
   ],
 };
 
-class MockFromFlameQuoteService implements FromFlameQuoteService {
+class MockFirewordsQuoteService implements FirewordsQuoteService {
   private quotesByLocale: Record<Locale, FlameQuote[]> = {
     "zh-CN": [],
     "en-US": [],
@@ -300,5 +300,5 @@ function shuffle<T>(items: T[]): T[] {
   return items;
 }
 
-export const fromFlameQuoteService: FromFlameQuoteService =
-  new MockFromFlameQuoteService();
+export const firewordsQuoteService: FirewordsQuoteService =
+  new MockFirewordsQuoteService();

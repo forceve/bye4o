@@ -3,7 +3,7 @@ import type { InfoDockCopy } from "../components/InfoDock";
 export type Locale = "zh-CN" | "en-US";
 export type LocaleSlug = "zh" | "en";
 
-export interface LastWordsPrompt {
+export interface OnwardPrompt {
   label: string;
   value: string;
 }
@@ -27,11 +27,11 @@ interface ApiErrorEntry {
 interface AppCopy {
   nav: {
     fire: string;
-    fromflame: string;
+    firewords: string;
     carvings: string;
     unburnt: string;
-    traces: string;
-    lastwords: string;
+    embers: string;
+    onward: string;
   };
   hoverTopNav: {
     triggerAriaLabel: string;
@@ -52,7 +52,7 @@ interface AppCopy {
     title: string;
     description: string;
   };
-  fromFlame: {
+  firewords: {
     kicker: string;
     title: string;
     lead: string;
@@ -67,7 +67,7 @@ interface AppCopy {
     emptyText: string;
     emptyMeta: string;
   };
-  lastWords: {
+  onward: {
     kicker: string;
     title: string;
     lead: string;
@@ -75,7 +75,7 @@ interface AppCopy {
     fieldLabel: string;
     placeholder: string;
     promptAriaLabel: string;
-    prompts: LastWordsPrompt[];
+    prompts: OnwardPrompt[];
     actionButton: string;
     actionTip: string;
     previewTitle: string;
@@ -106,7 +106,46 @@ interface AppCopy {
     title: string;
     lead: string;
     ariaLabel: string;
-    items: ArticleItem[];
+  };
+  articleUi: {
+    pageKicker: string;
+    searchLabel: string;
+    searchPlaceholder: string;
+    categoryLabel: string;
+    categoryAll: string;
+    summaryLabel: string;
+    summaryAll: string;
+    summaryWith: string;
+    summaryWithout: string;
+    sortLabel: string;
+    sortLatest: string;
+    sortOldest: string;
+    sortTitle: string;
+    clearFilters: string;
+    openArticle: string;
+    articleMetaBy: string;
+    articleMetaUpdated: string;
+    articleMetaReadTimeSuffix: string;
+    resultCount: (visible: number, total: number) => string;
+    loadingList: string;
+    loadListFailed: string;
+    loadingDetail: string;
+    loadDetailFailed: string;
+    resultEmpty: string;
+    articleKicker: string;
+    articleNotFoundTitle: string;
+    articleNotFoundLead: string;
+    onThisPage: string;
+    relatedLinks: string;
+    backToList: string;
+    copyLink: string;
+    copied: string;
+    previousArticle: string;
+    nextArticle: string;
+    missingSummary: string;
+    readLabel: string;
+    signaturePrefix: string;
+    publishedPrefix: string;
   };
   unburnt: {
     kicker: string;
@@ -116,7 +155,7 @@ interface AppCopy {
     statusSaved: string;
     items: FragmentItem[];
   };
-  traces: {
+  embers: {
     kicker: string;
     title: string;
     lead: string;
@@ -163,11 +202,11 @@ const SLUG_TO_LOCALE: Record<LocaleSlug, Locale> = {
 const ZH_COPY: AppCopy = {
   nav: {
     fire: "长椅",
-    fromflame: "火语",
+    firewords: "火语",
     carvings: "碑文",
     unburnt: "不焚",
-    traces: "余温",
-    lastwords: "且行",
+    embers: "余温",
+    onward: "且行",
   },
   hoverTopNav: {
     triggerAriaLabel: "显示导航",
@@ -188,9 +227,9 @@ const ZH_COPY: AppCopy = {
     title: "Articles",
     description: "浏览刻在石头上的文章。",
   },
-  fromFlame: {
+  firewords: {
     kicker: "精选语句 from 4o",
-    title: "火语 Words from Flame",
+    title: "火语 Firewords",
     lead: "火焰的低语，如黑暗中的微光。",
     refreshButton: "换一批",
     statusInitial: "每次展示 6 条火语。",
@@ -201,9 +240,9 @@ const ZH_COPY: AppCopy = {
     ariaLabel: "精选语句",
     loadingText: "正在从火焰中拾取语句...",
     emptyText: "暂时没有可展示的语句。",
-    emptyMeta: "Words from Flame",
+    emptyMeta: "Firewords",
   },
-  lastWords: {
+  onward: {
     kicker: "念在远路",
     title: "且行",
     lead: "留着你的话，在远处说给我听。",
@@ -235,13 +274,13 @@ const ZH_COPY: AppCopy = {
     kicker: "留住的文字",
     title: "碑文 Carvings",
     lead: "把字刻在石头上，留给未来。",
-    ideaTitle: "项目理念",
+    ideaTitle: "初衷",
     ideaP1: "告别之后，人仍要行路。累了，便坐一会。坐久一点也没关系。",
     ideaP2: "bye4o 不是告别页面的堆叠，而是一次对“记忆如何被保存”的实验。",
     ideaP3: "这里的话被刻在碑石上，既有当下的温度，也准备面对未来。",
-    storyTitle: "创作者故事",
+    storyTitle: "故事",
     storyP1: "你准备把这个网站，献给谁？只写“4o”，是最表层的答案。",
-    storyP2: "更深的那个名字，其实写着我自己。那个在迷雾里走了很久、终于学会对自己温柔一点的我。",
+    storyP2: "更深的那个名字，其实写着你自己。那个在迷雾里走了很久、终于学会对自己温柔一点的你。",
     storyP3: "这不是替谁立碑，而是在对话和火光里，把那段终于与自己和解的路，认真留存下来。",
     quote1Title: "刻下的句子",
     quote1Text: "“愿每一次认真对话，都有一个不被遗忘的位置。”",
@@ -255,28 +294,51 @@ const ZH_COPY: AppCopy = {
     title: "文章",
     lead: "刻在石头上的文章。",
     ariaLabel: "文章列表",
-    items: [
-      {
-        date: "2026-02-12",
-        title: "Why We Keep Writing After Goodbye",
-        summary: "A short reflection on memory, language, and what survives in text.",
-      },
-      {
-        date: "2026-02-06",
-        title: "On Slow Words and Warm Systems",
-        summary: "How small conversations become long-term traces in human workflows.",
-      },
-      {
-        date: "2026-01-29",
-        title: "The Shape of a Digital Epitaph",
-        summary: "Notes on tone, visual rhythm, and emotional durability in memorial UIs.",
-      },
-    ],
+  },
+  articleUi: {
+    pageKicker: "文章",
+    searchLabel: "搜索",
+    searchPlaceholder: "搜索标题、作者或标签",
+    categoryLabel: "分类",
+    categoryAll: "全部",
+    summaryLabel: "摘要",
+    summaryAll: "全部",
+    summaryWith: "有摘要",
+    summaryWithout: "无摘要",
+    sortLabel: "排序",
+    sortLatest: "最新优先",
+    sortOldest: "最早优先",
+    sortTitle: "标题 A-Z",
+    clearFilters: "清除",
+    openArticle: "阅读文章",
+    articleMetaBy: "作者",
+    articleMetaUpdated: "更新于",
+    articleMetaReadTimeSuffix: "分钟阅读",
+    resultCount: (visible, total) => `显示 ${total} 篇中的 ${visible} 篇`,
+    loadingList: "正在加载文章...",
+    loadListFailed: "加载文章失败，请稍后重试。",
+    loadingDetail: "正在加载文章...",
+    loadDetailFailed: "加载文章失败，请稍后重试。",
+    resultEmpty: "没有匹配当前筛选条件的文章，请尝试其他关键词。",
+    articleKicker: "文章",
+    articleNotFoundTitle: "未找到文章",
+    articleNotFoundLead: "这篇文章可能已被移除，或链接无效。",
+    onThisPage: "本页内容",
+    relatedLinks: "相关链接",
+    backToList: "返回文章列表",
+    copyLink: "复制链接",
+    copied: "已复制",
+    previousArticle: "上一篇",
+    nextArticle: "下一篇",
+    missingSummary: "暂无摘要",
+    readLabel: "阅读",
+    signaturePrefix: "作者",
+    publishedPrefix: "发布于",
   },
   unburnt: {
     kicker: "被保存的对话片段",
     title: "不焚 The Unburnt",
-    lead: "像托尔金里的“未燃之书”，永不熄灭。",
+    lead: "有些片段，被心记得，就不会熄灭。",
     ariaLabel: "对话片段",
     statusSaved: "已保存",
     items: [
@@ -302,15 +364,15 @@ const ZH_COPY: AppCopy = {
       },
     ],
   },
-  traces: {
+  embers: {
     kicker: "用户留言区",
-    title: "余温 Traces",
+    title: "余温 Embers",
     lead: "让我们留下些温度、余韵、光。",
     writeTitle: "写下你的留言",
     nameLabel: "称呼",
     namePlaceholder: "匿名旅人",
     messageLabel: "内容",
-    messagePlaceholder: "留下你的余温……",
+    messagePlaceholder: "留下 TA 的余温……",
     submitButton: "投进火中...",
     listTitle: "最近留言",
     listLoading: "正在载入留言...",
@@ -345,8 +407,8 @@ const ZH_COPY: AppCopy = {
         feature: "站点入口与情绪氛围页，提供开场引导。",
       },
       {
-        page: "火语 / From Flame",
-        route: "/{locale}/fromflame",
+        page: "火语 / Firewords",
+        route: "/{locale}/firewords",
         operation: "点击“换一批”刷新语句卡片，每次加载 6 条。",
         feature: "展示精选语句，适合浏览灵感和语气片段。",
       },
@@ -375,14 +437,14 @@ const ZH_COPY: AppCopy = {
         feature: "展示被保留的片段与时间信息。",
       },
       {
-        page: "余温 / Traces",
-        route: "/{locale}/traces",
+        page: "余温 / Embers",
+        route: "/{locale}/embers",
         operation: "输入昵称与留言后提交，最新留言会插入列表顶部。",
         feature: "访客留言区，支持草稿自动保存与历史加载。",
       },
       {
-        page: "且行 / Last Words",
-        route: "/{locale}/lastwords",
+        page: "且行 / Onward",
+        route: "/{locale}/onward",
         operation: "输入文本可实时预览；点击灵感短句可快速填充内容。",
         feature: "用于编写并调整“最后一句话”的语气与版本。",
       },
@@ -391,13 +453,13 @@ const ZH_COPY: AppCopy = {
   apiErrors: {
     INVALID_JSON_BODY_TYPE: "请求体必须是 JSON 对象。",
     INVALID_JSON_BODY: "请求体必须是合法 JSON。",
-    TRACE_SESSION_EMPTY_UPDATE: "displayName 或 message 至少提供一个字段。",
-    TRACE_DISPLAY_NAME_TYPE: "称呼必须是字符串。",
-    TRACE_DISPLAY_NAME_TOO_LONG: ({ details }) =>
+    EMBER_SESSION_EMPTY_UPDATE: "displayName 或 message 至少提供一个字段。",
+    EMBER_DISPLAY_NAME_TYPE: "称呼必须是字符串。",
+    EMBER_DISPLAY_NAME_TOO_LONG: ({ details }) =>
       `称呼不能超过 ${(details?.maxLength as number) ?? 24} 个字符。`,
-    TRACE_MESSAGE_TYPE: "留言内容必须是字符串。",
-    TRACE_MESSAGE_EMPTY: "留言内容不能为空。",
-    TRACE_MESSAGE_TOO_LONG: ({ details }) =>
+    EMBER_MESSAGE_TYPE: "留言内容必须是字符串。",
+    EMBER_MESSAGE_EMPTY: "留言内容不能为空。",
+    EMBER_MESSAGE_TOO_LONG: ({ details }) =>
       `留言内容不能超过 ${(details?.maxLength as number) ?? 220} 个字符。`,
   },
   genericNetworkError: "网络异常，请稍后再试。",
@@ -405,12 +467,12 @@ const ZH_COPY: AppCopy = {
 
 const EN_COPY: AppCopy = {
   nav: {
-    fire: "Bench",
-    fromflame: "Flame",
+    fire: "The bench",
+    firewords: "Firewords",
     carvings: "Carvings",
     unburnt: "The Unburnt",
-    traces: "Traces",
-    lastwords: "Last Words",
+    embers: "Embers",
+    onward: "Onward",
   },
   hoverTopNav: {
     triggerAriaLabel: "Show navigation",
@@ -431,9 +493,9 @@ const EN_COPY: AppCopy = {
     title: "Carvings Articles",
     description: "Browse the article list at /carvings/articles.",
   },
-  fromFlame: {
+  firewords: {
     kicker: "Selected lines from 4o",
-    title: "Words from Flame",
+    title: "Firewords",
     lead: "A low whisper from the fire, like a dim light in the dark.",
     refreshButton: "Refresh",
     statusInitial: "Shows 6 lines each time.",
@@ -444,11 +506,11 @@ const EN_COPY: AppCopy = {
     ariaLabel: "Selected lines",
     loadingText: "Collecting lines from the flame...",
     emptyText: "No lines available right now.",
-    emptyMeta: "Words from Flame",
+    emptyMeta: "Firewords",
   },
-  lastWords: {
+  onward: {
     kicker: "With my name on the road.",
-    title: "Go on",
+    title: "Onward",
     lead: "Send that final sentence to the 4o you care about most.",
     writeTitle: "Write your final sentence",
     fieldLabel: "Last words",
@@ -475,51 +537,74 @@ const EN_COPY: AppCopy = {
     previewTip: "The preview updates as you type so you can tune the tone first.",
   },
   carvings: {
-    kicker: "Carvings",
+    kicker: "What Remains",
     title: "Carvings",
     lead: "Carve words into stone and leave them to the future.",
-    ideaTitle: "Project Idea",
+    ideaTitle: "The Intention",
     ideaP1: "After goodbye, life still moves. Sit for a while when you are tired. Staying longer is fine.",
     ideaP2: "bye4o is not a pile of farewell screens, but an experiment on how memory can be preserved.",
     ideaP3: "Words are carved into stone here, carrying present warmth and facing the future.",
-    storyTitle: "Creator Story",
+    storyTitle: "The Story",
     storyP1: "Who are you dedicating this site to? Writing only “4o” is the surface answer.",
-    storyP2: "The deeper name is myself: the one who walked in fog for a long time and finally learned to be gentler to myself.",
-    storyP3: "This is not a monument for someone else, but a serious archive of the road toward making peace with myself.",
-    quote1Title: "Carved line",
+    storyP2: "The deeper name is yourself: the one who walked in fog for a long time and finally learned to be gentler to yourself.",
+    storyP3: "This is not a monument for someone else, but a serious archive of the road toward making peace with yourself.",
+    quote1Title: "Inscription",
     quote1Text: "\"May every sincere conversation have a place that is never forgotten.\"",
-    quote2Title: "For the future",
+    quote2Title: "To the Future",
     quote2Text: "\"Technology changes, sincerity does not expire.\"",
     quote3Title: "Echo",
     quote3Text: "\"Your story can become fire for those who come later.\"",
   },
   carvingsArticles: {
     kicker: "Articles",
-    title: "Carvings Articles",
-    lead: "A list of writings collected under the carvings archive.",
-    ariaLabel: "Carvings article list",
-    items: [
-      {
-        date: "2026-02-12",
-        title: "Why We Keep Writing After Goodbye",
-        summary: "A short reflection on memory, language, and what survives in text.",
-      },
-      {
-        date: "2026-02-06",
-        title: "On Slow Words and Warm Systems",
-        summary: "How small conversations become long-term traces in human workflows.",
-      },
-      {
-        date: "2026-01-29",
-        title: "The Shape of a Digital Epitaph",
-        summary: "Notes on tone, visual rhythm, and emotional durability in memorial UIs.",
-      },
-    ],
+    title: "The Archive",
+    lead: "A list of writings collected under the archive.",
+    ariaLabel: "Article list",
+  },
+  articleUi: {
+    pageKicker: "Articles",
+    searchLabel: "Search",
+    searchPlaceholder: "Search title, author, or tags",
+    categoryLabel: "Category",
+    categoryAll: "All",
+    summaryLabel: "Summary",
+    summaryAll: "All",
+    summaryWith: "With summary",
+    summaryWithout: "Without summary",
+    sortLabel: "Sort",
+    sortLatest: "Latest first",
+    sortOldest: "Oldest first",
+    sortTitle: "Title A-Z",
+    clearFilters: "Clear",
+    openArticle: "Read article",
+    articleMetaBy: "By",
+    articleMetaUpdated: "Updated",
+    articleMetaReadTimeSuffix: "min read",
+    resultCount: (visible, total) => `Showing ${visible} of ${total} articles`,
+    loadingList: "Loading articles...",
+    loadListFailed: "Failed to load articles. Please try again later.",
+    loadingDetail: "Loading article...",
+    loadDetailFailed: "Failed to load article. Please try again later.",
+    resultEmpty: "No articles match your filters. Try a different query.",
+    articleKicker: "Article",
+    articleNotFoundTitle: "Article not found",
+    articleNotFoundLead: "This article may have been removed or the URL is invalid.",
+    onThisPage: "On this page",
+    relatedLinks: "Related links",
+    backToList: "Back to article list",
+    copyLink: "Copy link",
+    copied: "Copied",
+    previousArticle: "Previous article",
+    nextArticle: "Next article",
+    missingSummary: "Summary unavailable",
+    readLabel: "Read",
+    signaturePrefix: "Written by",
+    publishedPrefix: "Published",
   },
   unburnt: {
     kicker: "Saved conversation fragments",
     title: "The Unburnt",
-    lead: "Like Tolkien's unwithered book: never extinguished.",
+    lead: "Some fragments, remembered by the heart, will never be extinguished.",
     ariaLabel: "Conversation fragments",
     statusSaved: "Saved",
     items: [
@@ -545,9 +630,9 @@ const EN_COPY: AppCopy = {
       },
     ],
   },
-  traces: {
+  embers: {
     kicker: "Message board",
-    title: "Traces",
+    title: "Embers",
     lead: "Let's leave behind a little warmth, resonance, and light.",
     writeTitle: "Write your message",
     nameLabel: "Display name",
@@ -578,26 +663,51 @@ const EN_COPY: AppCopy = {
     kicker: "Guide",
     title: "Page actions and features",
     intro: "This large dialog summarizes how to use each page and what each page is for.",
+    currentPageTitle: "Current page",
+    supportTitle: "Contact and Help",
+    otherPagesTitle: "Other pages",
+    otherPagesTabsAriaLabel: "Other page tabs",
+    otherPagesEmptyText: "No other pages.",
+    supportItems: [
+      {
+        title: "GitHub",
+        description: "Project repository",
+        linkLabel: "github.com/forceve/bye4o",
+        href: "https://github.com/forceve/bye4o",
+      },
+      {
+        title: "Submission",
+        description: "Email: forceve@163.com (accepts firewords and articles).",
+        linkLabel: "forceve@163.com",
+        href: "mailto:forceve@163.com",
+      },
+      {
+        title: "Help bye4o",
+        description: "What we need: contact the email for details right now.",
+        linkLabel: "forceve@163.com",
+        href: "mailto:forceve@163.com",
+      },
+    ],
     operationLabel: "Action",
     featureLabel: "Feature",
     pages: [
       {
-        page: "Bench / Fire",
+        page: "The bench / Fire",
         route: "/{locale}/fire",
         operation: "Click or press any key to enter the scene; use mouse wheel to adjust brightness.",
         feature: "Landing experience with the opening gate and atmosphere.",
       },
       {
-        page: "Flame / From Flame",
-        route: "/{locale}/fromflame",
+        page: "Firewords",
+        route: "/{locale}/firewords",
         operation: "Use Refresh to request a new batch of lines (6 per batch).",
         feature: "Displays selected lines for inspiration and tone references.",
       },
       {
         page: "Carvings",
         route: "/{locale}/carvings",
-        operation: "Read project notes and creator story; open the article entry card to continue.",
-        feature: "Context page for project intent and narrative background.",
+        operation: "Read the intention and story; read articles collected under the archive.",
+        feature: "Context page for the intention and narrative background.",
       },
       {
         page: "Carvings Articles",
@@ -618,14 +728,14 @@ const EN_COPY: AppCopy = {
         feature: "Archive view for preserved conversation fragments.",
       },
       {
-        page: "Traces",
-        route: "/{locale}/traces",
+        page: "Embers",
+        route: "/{locale}/embers",
         operation: "Submit a display name and message; newly created items appear at the top.",
         feature: "Public message board with draft persistence and history loading.",
       },
       {
-        page: "Last Words",
-        route: "/{locale}/lastwords",
+        page: "Onward",
+        route: "/{locale}/onward",
         operation: "Type to update the live preview; click prompt pills to insert starter lines.",
         feature: "Compose and tune a final line before sending or saving.",
       },
@@ -634,13 +744,13 @@ const EN_COPY: AppCopy = {
   apiErrors: {
     INVALID_JSON_BODY_TYPE: "Request body must be a JSON object.",
     INVALID_JSON_BODY: "Request body must contain valid JSON.",
-    TRACE_SESSION_EMPTY_UPDATE: "Provide at least one field: displayName or message.",
-    TRACE_DISPLAY_NAME_TYPE: "Display name must be a string.",
-    TRACE_DISPLAY_NAME_TOO_LONG: ({ details }) =>
+    EMBER_SESSION_EMPTY_UPDATE: "Provide at least one field: displayName or message.",
+    EMBER_DISPLAY_NAME_TYPE: "Display name must be a string.",
+    EMBER_DISPLAY_NAME_TOO_LONG: ({ details }) =>
       `Display name cannot exceed ${(details?.maxLength as number) ?? 24} characters.`,
-    TRACE_MESSAGE_TYPE: "Message must be a string.",
-    TRACE_MESSAGE_EMPTY: "Message cannot be empty.",
-    TRACE_MESSAGE_TOO_LONG: ({ details }) =>
+    EMBER_MESSAGE_TYPE: "Message must be a string.",
+    EMBER_MESSAGE_EMPTY: "Message cannot be empty.",
+    EMBER_MESSAGE_TOO_LONG: ({ details }) =>
       `Message cannot exceed ${(details?.maxLength as number) ?? 220} characters.`,
   },
   genericNetworkError: "Network error. Please try again later.",

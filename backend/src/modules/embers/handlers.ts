@@ -3,41 +3,41 @@ import { HttpError } from "../../shared/errors";
 import { ErrorCodes } from "../../shared/errorCodes";
 import { json, readJsonObject } from "../../shared/http";
 import {
-  clearTraceDraftCookie,
-  clearTraceNameCookie,
+  clearEmberDraftCookie,
+  clearEmberNameCookie,
   parseDraftCookie,
-  setTraceDraftCookie,
-  setTraceNameCookie,
+  setEmberDraftCookie,
+  setEmberNameCookie,
 } from "./cookies";
-import { DEFAULT_TRACE_NAME, DEFAULT_TRACE_QUERY_LIMIT, TRACE_DRAFT_COOKIE } from "./constants";
-import { encodeTraceCursor, parseTraceCursor } from "./cursor";
-import { TraceItem, TraceRow } from "./types";
+import { DEFAULT_EMBER_NAME, DEFAULT_EMBER_QUERY_LIMIT, EMBER_DRAFT_COOKIE } from "./constants";
+import { encodeEmberCursor, parseEmberCursor } from "./cursor";
+import { EmberItem, EmberRow } from "./types";
 import {
-  getStoredTraceName,
+  getStoredEmberName,
   normalizeQueryLimit,
-  normalizeTraceMessage,
-  normalizeTraceName,
+  normalizeEmberMessage,
+  normalizeEmberName,
 } from "./validation";
 
-interface TraceAuthContext {
+interface EmberAuthContext {
   anonUserId: string;
   cookies: Record<string, string>;
   setCookies: string[];
   url: URL;
 }
 
-export async function handleListTraces(request: Request, env: Env): Promise<Response> {
+export async function handleListEmbers(request: Request, env: Env): Promise<Response> {
   const url = new URL(request.url);
-  const requestedLimit = Number(url.searchParams.get("limit") ?? DEFAULT_TRACE_QUERY_LIMIT);
+  const requestedLimit = Number(url.searchParams.get("limit") ?? DEFAULT_EMBER_QUERY_LIMIT);
   const limit = normalizeQueryLimit(requestedLimit);
-  const cursor = parseTraceCursor(url.searchParams.get("cursor"));
+  const cursor = parseEmberCursor(url.searchParams.get("cursor"));
 
   let query: D1PreparedStatement;
   if (cursor) {
     query = env.DB.prepare(
       `
       SELECT id, display_name, message, created_at
-      FROM traces
+      FROM embers
       WHERE (created_at < ?1) OR (created_at = ?1 AND id < ?2)
       ORDER BY created_at DESC, id DESC
       LIMIT ?3
@@ -47,39 +47,39 @@ export async function handleListTraces(request: Request, env: Env): Promise<Resp
     query = env.DB.prepare(
       `
       SELECT id, display_name, message, created_at
-      FROM traces
+      FROM embers
       ORDER BY created_at DESC, id DESC
       LIMIT ?1
       `
     ).bind(limit);
   }
 
-  const result = await query.all<TraceRow>();
+  const result = await query.all<EmberRow>();
   const rows = result.results ?? [];
-  const items = rows.map(toTraceItem);
+  const items = rows.map(toEmberItem);
   const last = rows.at(-1);
 
   return json({
     items,
-    nextCursor: last ? encodeTraceCursor(last.created_at, last.id) : null,
+    nextCursor: last ? encodeEmberCursor(last.created_at, last.id) : null,
   });
 }
 
-export async function handleCreateTrace(
+export async function handleCreateEmber(
   request: Request,
   env: Env,
   _ctx: ExecutionContext,
-  auth: TraceAuthContext
+  auth: EmberAuthContext
 ): Promise<Response> {
   const payload = await readJsonObject(request);
   const hasDisplayName = Object.hasOwn(payload, "displayName");
 
-  const submittedName = hasDisplayName ? normalizeTraceName(payload.displayName) : "";
-  const fallbackName = getStoredTraceName(auth.cookies) || DEFAULT_TRACE_NAME;
+  const submittedName = hasDisplayName ? normalizeEmberName(payload.displayName) : "";
+  const fallbackName = getStoredEmberName(auth.cookies) || DEFAULT_EMBER_NAME;
   const displayName = submittedName || fallbackName;
-  const message = normalizeTraceMessage(payload.message, true);
+  const message = normalizeEmberMessage(payload.message, true);
 
-  const trace: TraceItem = {
+  const ember: EmberItem = {
     id: crypto.randomUUID(),
     displayName,
     message,
@@ -88,25 +88,25 @@ export async function handleCreateTrace(
 
   await env.DB.prepare(
     `
-    INSERT INTO traces (id, anon_user_id, display_name, message, created_at)
+    INSERT INTO embers (id, anon_user_id, display_name, message, created_at)
     VALUES (?1, ?2, ?3, ?4, ?5)
     `
   )
-    .bind(trace.id, auth.anonUserId, trace.displayName, trace.message, trace.createdAt)
+    .bind(ember.id, auth.anonUserId, ember.displayName, ember.message, ember.createdAt)
     .run();
 
   if (submittedName) {
-    setTraceNameCookie(auth.setCookies, submittedName, auth.url);
+    setEmberNameCookie(auth.setCookies, submittedName, auth.url);
   }
 
-  clearTraceDraftCookie(auth.setCookies, auth.url);
+  clearEmberDraftCookie(auth.setCookies, auth.url);
 
-  return json({ item: trace }, 201);
+  return json({ item: ember }, 201);
 }
 
-export function handleGetTraceSession(auth: TraceAuthContext): Response {
-  const draft = parseDraftCookie(auth.cookies[TRACE_DRAFT_COOKIE]);
-  const storedName = getStoredTraceName(auth.cookies);
+export function handleGetEmberSession(auth: EmberAuthContext): Response {
+  const draft = parseDraftCookie(auth.cookies[EMBER_DRAFT_COOKIE]);
+  const storedName = getStoredEmberName(auth.cookies);
 
   return json({
     anonUserId: auth.anonUserId,
@@ -117,9 +117,9 @@ export function handleGetTraceSession(auth: TraceAuthContext): Response {
   });
 }
 
-export async function handleUpdateTraceSession(
+export async function handleUpdateEmberSession(
   request: Request,
-  auth: TraceAuthContext
+  auth: EmberAuthContext
 ): Promise<Response> {
   const payload = await readJsonObject(request);
   const hasDisplayName = Object.hasOwn(payload, "displayName");
@@ -128,32 +128,32 @@ export async function handleUpdateTraceSession(
   if (!hasDisplayName && !hasMessage) {
     throw new HttpError(
       400,
-      ErrorCodes.TraceSessionEmptyUpdate,
+      ErrorCodes.EmberSessionEmptyUpdate,
       "Provide at least one field: displayName or message."
     );
   }
 
-  const currentDraft = parseDraftCookie(auth.cookies[TRACE_DRAFT_COOKIE]);
-  const currentDisplayName = getStoredTraceName(auth.cookies) || currentDraft?.displayName || "";
+  const currentDraft = parseDraftCookie(auth.cookies[EMBER_DRAFT_COOKIE]);
+  const currentDisplayName = getStoredEmberName(auth.cookies) || currentDraft?.displayName || "";
   const currentMessage = currentDraft?.message ?? "";
 
   const nextDisplayName = hasDisplayName
-    ? normalizeTraceName(payload.displayName)
+    ? normalizeEmberName(payload.displayName)
     : currentDisplayName;
   const nextMessage = hasMessage
-    ? normalizeTraceMessage(payload.message, false)
+    ? normalizeEmberMessage(payload.message, false)
     : currentMessage;
 
   if (hasDisplayName) {
     if (nextDisplayName) {
-      setTraceNameCookie(auth.setCookies, nextDisplayName, auth.url);
+      setEmberNameCookie(auth.setCookies, nextDisplayName, auth.url);
     } else {
-      clearTraceNameCookie(auth.setCookies, auth.url);
+      clearEmberNameCookie(auth.setCookies, auth.url);
     }
   }
 
   if (nextDisplayName || nextMessage) {
-    setTraceDraftCookie(
+    setEmberDraftCookie(
       auth.setCookies,
       {
         displayName: nextDisplayName,
@@ -162,7 +162,7 @@ export async function handleUpdateTraceSession(
       auth.url
     );
   } else {
-    clearTraceDraftCookie(auth.setCookies, auth.url);
+    clearEmberDraftCookie(auth.setCookies, auth.url);
   }
 
   return json({
@@ -174,7 +174,7 @@ export async function handleUpdateTraceSession(
   });
 }
 
-function toTraceItem(row: TraceRow): TraceItem {
+function toEmberItem(row: EmberRow): EmberItem {
   return {
     id: row.id,
     displayName: row.display_name,

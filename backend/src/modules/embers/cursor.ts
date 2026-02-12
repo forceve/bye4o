@@ -1,11 +1,11 @@
 import { decodeBase64Url, encodeBase64Url } from "../../shared/base64url";
 
-export function encodeTraceCursor(createdAt: string, id: string): string {
+export function encodeEmberCursor(createdAt: string, id: string): string {
   const raw = `${createdAt}|${id}`;
   return encodeBase64Url(new TextEncoder().encode(raw));
 }
 
-export function parseTraceCursor(
+export function parseEmberCursor(
   cursor: string | null
 ): { createdAt: string; id: string } | null {
   if (!cursor) {

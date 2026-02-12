@@ -1,4 +1,4 @@
-export interface TopNavItem<TPath extends string = string> {
+﻿export interface TopNavItem<TPath extends string = string> {
   label: string;
   path: TPath;
 }
@@ -21,8 +21,8 @@ export function createHoverTopNav<TPath extends string = string>({
   items,
   activePath,
   onNavigate,
-  triggerAriaLabel = "显示导航",
-  panelAriaLabel = "主导航",
+  triggerAriaLabel = "Show navigation",
+  panelAriaLabel = "Main navigation",
 }: CreateHoverTopNavOptions<TPath>): HTMLElement & { controller: HoverTopNavController } {
   const shell = document.createElement("header");
   shell.className = "hover-top-nav";
@@ -66,21 +66,21 @@ export function createHoverTopNav<TPath extends string = string>({
   shell.appendChild(trigger);
   shell.appendChild(panel);
 
-  // 控制逻辑
+  // 鎺у埗閫昏緫
   let hideTimeout: number | null = null;
-  const AUTO_HIDE_DELAY = 3000; // 3秒
+  const AUTO_HIDE_DELAY = 3000; // 3绉?
 
   const show = () => {
-    // 清除之前的隐藏定时器
+    // 娓呴櫎涔嬪墠鐨勯殣钘忓畾鏃跺櫒
     if (hideTimeout !== null) {
       window.clearTimeout(hideTimeout);
       hideTimeout = null;
     }
 
-    // 显示 navbar
+    // 鏄剧ず navbar
     shell.classList.add("is-visible");
 
-    // 设置3秒后自动隐藏
+    // 璁剧疆3绉掑悗鑷姩闅愯棌
     hideTimeout = window.setTimeout(() => {
       hide();
     }, AUTO_HIDE_DELAY);
@@ -94,32 +94,35 @@ export function createHoverTopNav<TPath extends string = string>({
     shell.classList.remove("is-visible");
   };
 
-  // 鼠标悬浮时显示
+  // 榧犳爣鎮诞鏃舵樉绀?
   shell.addEventListener("mouseenter", () => {
     show();
   });
 
-  // 鼠标离开时，不立即隐藏，让3秒定时器自然触发隐藏
-  // 这样悬浮召唤后即使鼠标离开，也会停留3秒
+  // 榧犳爣绂诲紑鏃讹紝涓嶇珛鍗抽殣钘忥紝璁?绉掑畾鏃跺櫒鑷劧瑙﹀彂闅愯棌
+  // 杩欐牱鎮诞鍙敜鍚庡嵆浣块紶鏍囩寮€锛屼篃浼氬仠鐣?绉?
 
-  // 点击页面空白处显示navbar
+  // 鐐瑰嚮椤甸潰绌虹櫧澶勬樉绀簄avbar
   const handleDocumentClick = (e: MouseEvent) => {
     const target = e.target as HTMLElement | null;
     if (!target) return;
 
-    // 如果点击的是navbar内的元素，保持显示（重置定时器）
+    // 濡傛灉鐐瑰嚮鐨勬槸navbar鍐呯殑鍏冪礌锛屼繚鎸佹樉绀猴紙閲嶇疆瀹氭椂鍣級
     if (shell.contains(target)) {
       show();
       return;
     }
 
-    // 检查点击的是否是按钮（不包括navbar内的按钮，因为上面已经处理了）
-    const isButton = target.tagName === "BUTTON" || target.closest("button");
-    
-    // 如果点击的不是按钮，则显示navbar
-    if (!isButton) {
-      show();
+    // 妫€鏌ョ偣鍑荤殑鏄惁鏄寜閽紙涓嶅寘鎷琻avbar鍐呯殑鎸夐挳锛屽洜涓轰笂闈㈠凡缁忓鐞嗕簡锛?
+    const interactiveTarget = target.closest(
+      "button, a, input, textarea, select, label, summary, [role='button'], [role='link'], [data-nav-summon='ignore']"
+    );
+
+    if (interactiveTarget) {
+      return;
     }
+
+    show();
   };
 
   document.addEventListener("click", handleDocumentClick);
@@ -134,8 +137,9 @@ export function createHoverTopNav<TPath extends string = string>({
 
   const controller: HoverTopNavController = { show, hide, destroy };
 
-  // 将 controller 附加到 shell 元素上
+  // 灏?controller 闄勫姞鍒?shell 鍏冪礌涓?
   (shell as HTMLElement & { controller: HoverTopNavController }).controller = controller;
 
   return shell as HTMLElement & { controller: HoverTopNavController };
 }
+

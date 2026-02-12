@@ -1,16 +1,16 @@
 export const API_PREFIX = "/api";
 
 export const HEALTH_ROUTE = `${API_PREFIX}/health`;
-export const TRACES_ROUTE = `${API_PREFIX}/traces`;
-export const TRACES_SESSION_ROUTE = `${TRACES_ROUTE}/session`;
+export const EMBERS_ROUTE = `${API_PREFIX}/embers`;
+export const EMBERS_SESSION_ROUTE = `${EMBERS_ROUTE}/session`;
 export const ARTICLES_ROUTE = `${API_PREFIX}/articles`;
 
 export function isApiPath(pathname: string): boolean {
   return pathname.startsWith(API_PREFIX);
 }
 
-export function isTracesPath(pathname: string): boolean {
-  return pathname === TRACES_ROUTE || pathname.startsWith(`${TRACES_ROUTE}/`);
+export function isEmbersPath(pathname: string): boolean {
+  return pathname === EMBERS_ROUTE || pathname.startsWith(`${EMBERS_ROUTE}/`);
 }
 
 export function isArticlesPath(pathname: string): boolean {

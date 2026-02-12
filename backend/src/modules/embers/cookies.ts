@@ -5,14 +5,14 @@ import {
 } from "../../shared/cookies";
 import {
   ANON_USER_COOKIE,
-  MAX_TRACE_MESSAGE_LENGTH,
-  MAX_TRACE_NAME_LENGTH,
+  MAX_EMBER_MESSAGE_LENGTH,
+  MAX_EMBER_NAME_LENGTH,
   ONE_YEAR_SECONDS,
   THIRTY_DAYS_SECONDS,
-  TRACE_DRAFT_COOKIE,
-  TRACE_NAME_COOKIE,
+  EMBER_DRAFT_COOKIE,
+  EMBER_NAME_COOKIE,
 } from "./constants";
-import { TraceDraftPayload } from "./types";
+import { EmberDraftPayload } from "./types";
 
 export function ensureAnonUserId(
   cookies: Record<string, string>,
@@ -37,13 +37,13 @@ export function ensureAnonUserId(
   return anonUserId;
 }
 
-export function setTraceNameCookie(
+export function setEmberNameCookie(
   setCookies: string[],
   displayName: string,
   url: URL
 ): void {
   setCookies.push(
-    serializeCookie(TRACE_NAME_COOKIE, displayName, {
+    serializeCookie(EMBER_NAME_COOKIE, displayName, {
       maxAge: ONE_YEAR_SECONDS,
       path: "/",
       httpOnly: true,
@@ -53,9 +53,9 @@ export function setTraceNameCookie(
   );
 }
 
-export function clearTraceNameCookie(setCookies: string[], url: URL): void {
+export function clearEmberNameCookie(setCookies: string[], url: URL): void {
   setCookies.push(
-    serializeCookie(TRACE_NAME_COOKIE, "", {
+    serializeCookie(EMBER_NAME_COOKIE, "", {
       maxAge: 0,
       path: "/",
       httpOnly: true,
@@ -65,13 +65,13 @@ export function clearTraceNameCookie(setCookies: string[], url: URL): void {
   );
 }
 
-export function setTraceDraftCookie(
+export function setEmberDraftCookie(
   setCookies: string[],
-  payload: TraceDraftPayload,
+  payload: EmberDraftPayload,
   url: URL
 ): void {
   setCookies.push(
-    serializeCookie(TRACE_DRAFT_COOKIE, encodeDraftCookie(payload), {
+    serializeCookie(EMBER_DRAFT_COOKIE, encodeDraftCookie(payload), {
       maxAge: THIRTY_DAYS_SECONDS,
       path: "/",
       httpOnly: true,
@@ -81,9 +81,9 @@ export function setTraceDraftCookie(
   );
 }
 
-export function clearTraceDraftCookie(setCookies: string[], url: URL): void {
+export function clearEmberDraftCookie(setCookies: string[], url: URL): void {
   setCookies.push(
-    serializeCookie(TRACE_DRAFT_COOKIE, "", {
+    serializeCookie(EMBER_DRAFT_COOKIE, "", {
       maxAge: 0,
       path: "/",
       httpOnly: true,
@@ -93,7 +93,7 @@ export function clearTraceDraftCookie(setCookies: string[], url: URL): void {
   );
 }
 
-export function parseDraftCookie(rawValue: string | undefined): TraceDraftPayload | null {
+export function parseDraftCookie(rawValue: string | undefined): EmberDraftPayload | null {
   if (!rawValue) {
     return null;
   }
@@ -110,11 +110,11 @@ export function parseDraftCookie(rawValue: string | undefined): TraceDraftPayloa
     const displayName = typeof displayNameRaw === "string" ? displayNameRaw.trim() : "";
     const message = typeof messageRaw === "string" ? messageRaw.trim() : "";
 
-    if (Array.from(displayName).length > MAX_TRACE_NAME_LENGTH) {
+    if (Array.from(displayName).length > MAX_EMBER_NAME_LENGTH) {
       return null;
     }
 
-    if (Array.from(message).length > MAX_TRACE_MESSAGE_LENGTH) {
+    if (Array.from(message).length > MAX_EMBER_MESSAGE_LENGTH) {
       return null;
     }
 
@@ -124,7 +124,7 @@ export function parseDraftCookie(rawValue: string | undefined): TraceDraftPayloa
   }
 }
 
-function encodeDraftCookie(payload: TraceDraftPayload): string {
+function encodeDraftCookie(payload: EmberDraftPayload): string {
   const jsonValue = JSON.stringify(payload);
   const encoded = new TextEncoder().encode(jsonValue);
   return encodeBase64Url(encoded);

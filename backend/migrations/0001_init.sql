@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS traces (
+CREATE TABLE IF NOT EXISTS embers (
   id TEXT PRIMARY KEY,
   anon_user_id TEXT NOT NULL,
   display_name TEXT NOT NULL,
@@ -6,5 +6,5 @@ CREATE TABLE IF NOT EXISTS traces (
   created_at TEXT NOT NULL
 );
 
-CREATE INDEX IF NOT EXISTS idx_traces_created_at_id
-  ON traces (created_at DESC, id DESC);
+CREATE INDEX IF NOT EXISTS idx_embers_created_at_id
+  ON embers (created_at DESC, id DESC);

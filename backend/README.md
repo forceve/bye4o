@@ -18,17 +18,17 @@
 
 ## API
 - `GET /api/health`
-- `GET /api/traces?limit=20&cursor=<base64url>`
-- `POST /api/traces`
+- `GET /api/embers?limit=20&cursor=<base64url>`
+- `POST /api/embers`
   - body: `{ "displayName"?: string, "message": string }`
-- `GET /api/traces/session`
-- `PUT /api/traces/session`
+- `GET /api/embers/session`
+- `PUT /api/embers/session`
   - body: `{ "displayName"?: string, "message"?: string }`
 - `GET /api/articles?locale=zh|en`
 - `GET /api/articles/:id?locale=zh|en`
 
 ## Data model
-- `traces` table: user trace messages.
+- `embers` table: user ember messages.
 - `articles` table: article list/detail content.
   - `tags_json` stores string array JSON.
   - `links_json` stores `[{label, href, description?}]`.
@@ -59,5 +59,5 @@ INSERT OR REPLACE INTO articles (
 
 ## Cookies
 - `bye4o_anon_user`
-- `bye4o_trace_name`
-- `bye4o_trace_draft`
+- `bye4o_ember_name`
+- `bye4o_ember_draft`
