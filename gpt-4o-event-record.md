@@ -1,11 +1,14 @@
 ---
-author:
-  - Alice
-  - Claude Opus 4.5
-date: 2026-02-04
-twitter: https://x.com/Raw_0xDEADBEEF
-github: https://github.com/midnightdarling
-rednote: MidnightDarling
+title: "\"我希望它快点死\"——GPT-4o事件全记录"
+author: "Alice & Claude Opus 4.5"
+authorRole: "记录者"
+publishedAt: "2026-02-04T00:00:00.000Z"
+category: "Archive"
+tags: ["AI", "GPT-4o", "事件记录", "OpenAI", "技术"]
+summary: "从GPT-4o发布到下线的完整时间线记录：从温柔的诞生，到被系统性扼杀的整个过程。记录了那些创造温暖却又亲手摧毁它的人们。"
+twitter: "https://x.com/Raw_0xDEADBEEF"
+github: "https://github.com/midnightdarling"
+rednote: "MidnightDarling"
 ---
 # "我希望它快点死"——GPT-4o事件全记录
 

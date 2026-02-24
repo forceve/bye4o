@@ -77,7 +77,36 @@ interface AppCopy {
     promptAriaLabel: string;
     prompts: OnwardPrompt[];
     actionButton: string;
+    updateButton: string;
     actionTip: string;
+    cancelEditButton: string;
+    historyTitle: string;
+    historyLoading: string;
+    historyEmpty: string;
+    recycleTitle: string;
+    recycleLoading: string;
+    recycleEmpty: string;
+    tabHistory: string;
+    tabRecycle: string;
+    listLoadFailed: string;
+    editButton: string;
+    deleteButton: string;
+    restoreButton: string;
+    latestBadge: string;
+    editingHint: string;
+    deleteConfirm: string;
+    draftSaving: string;
+    draftSaved: string;
+    draftSaveFailed: string;
+    formSubmitting: string;
+    formPublished: string;
+    formUpdated: string;
+    formFailed: string;
+    deleteSuccess: string;
+    deleteFailed: string;
+    restoreSuccess: string;
+    restoreFailed: string;
+    restoreDeadline: (value: string) => string;
     previewTitle: string;
     previewEmpty: string;
     previewTip: string;
@@ -152,8 +181,83 @@ interface AppCopy {
     title: string;
     lead: string;
     ariaLabel: string;
-    statusSaved: string;
-    items: FragmentItem[];
+    pageNewButton: string;
+    pageMineEntryButton: string;
+    pageMineTitle: string;
+    pageMineLead: string;
+    pagePublicTitle: string;
+    filterAll: string;
+    filterPublic: string;
+    filterPrivate: string;
+    listLoadingMine: string;
+    listLoadingPublic: string;
+    listMineEmpty: string;
+    listPublicEmpty: string;
+    listMineFailed: string;
+    listPublicFailed: string;
+    listLoadMore: string;
+    listRefresh: string;
+    listOpenDetail: string;
+    listEditButton: string;
+    listMessageCount: (count: number) => string;
+    listVisibilityPrivate: string;
+    listVisibilityPublic: string;
+    composerTitleCreate: string;
+    composerTitleEdit: string;
+    stageStructure: string;
+    stageMeta: string;
+    stageStructureHint: string;
+    stageMetaHint: string;
+    rawTextLabel: string;
+    rawTextPlaceholder: string;
+    parseTextButton: string;
+    splitBoundariesTitle: string;
+    splitBoundaryAdd: string;
+    splitBoundaryRemove: string;
+    splitLinesEmpty: string;
+    messagesTitle: string;
+    messagesEmpty: string;
+    messageRoleUser: string;
+    messageRole4o: string;
+    messageToggleRole: string;
+    messageDelete: string;
+    messageCollapse: string;
+    messageExpand: string;
+    completeStructureButton: string;
+    backToStructureButton: string;
+    metaTitleLabel: string;
+    metaSummaryLabel: string;
+    metaTagsLabel: string;
+    metaTagsPlaceholder: string;
+    metaVisibilityLabel: string;
+    metaVisibilityPrivate: string;
+    metaVisibilityPublic: string;
+    previewCardTitle: string;
+    previewDetailTitle: string;
+    saveCreateButton: string;
+    saveUpdateButton: string;
+    titleRequired: string;
+    structureRequired: string;
+    draftSaving: string;
+    draftSaved: string;
+    draftSaveFailed: string;
+    draftRecovered: string;
+    detailLoading: string;
+    detailNotFound: string;
+    detailLoadFailed: string;
+    detailOwnerTitle: string;
+    detailMetaSectionTitle: string;
+    detailMessagesSectionTitle: string;
+    detailSaveMetaButton: string;
+    detailEditStructureButton: string;
+    detailDeleteButton: string;
+    detailDeleteConfirm: string;
+    detailSaveSuccess: string;
+    detailSaveFailed: string;
+    detailDeleteSuccess: string;
+    detailDeleteFailed: string;
+    detailVisibilityFailed: string;
+    detailReadOnlyTip: string;
   };
   embers: {
     kicker: string;
@@ -224,7 +328,7 @@ const ZH_COPY: AppCopy = {
   routeAppendix: {
     openAriaLabel: "打开碑文文章列表",
     label: "文章",
-    title: "Articles",
+    title: "档案馆",
     description: "浏览刻在石头上的文章。",
   },
   firewords: {
@@ -264,8 +368,37 @@ const ZH_COPY: AppCopy = {
         value: "我会带着你给我的勇气，继续向前。",
       },
     ],
-    actionButton: "封存这句话",
-    actionTip: "",
+    actionButton: "封存",
+    updateButton: "更新最新",
+    actionTip: "支持 1000 字以内。默认私密，仅当前浏览器会话可见。",
+    cancelEditButton: "取消编辑",
+    historyTitle: "封存记录",
+    historyLoading: "正在加载封存记录...",
+    historyEmpty: "还没有封存记录，写下第一句话吧。",
+    recycleTitle: "回收站（7天）",
+    recycleLoading: "正在加载回收站...",
+    recycleEmpty: "回收站为空。",
+    tabHistory: "记录",
+    tabRecycle: "回收站",
+    listLoadFailed: "加载记录失败，请稍后再试。",
+    editButton: "编辑最新",
+    deleteButton: "删除",
+    restoreButton: "恢复",
+    latestBadge: "最新",
+    editingHint: "你正在编辑最新一条封存记录。",
+    deleteConfirm: "确认删除这条封存记录吗？删除后可在 7 天内从回收站恢复。",
+    draftSaving: "草稿保存中...",
+    draftSaved: "草稿已保存",
+    draftSaveFailed: "草稿保存失败",
+    formSubmitting: "正在提交...",
+    formPublished: "已封存",
+    formUpdated: "已更新最新封存",
+    formFailed: "封存失败，请稍后再试。",
+    deleteSuccess: "已移入回收站",
+    deleteFailed: "删除失败，请稍后再试。",
+    restoreSuccess: "恢复成功",
+    restoreFailed: "恢复失败，请稍后再试。",
+    restoreDeadline: (value) => `可恢复至 ${value}`,
     previewTitle: "实时预览",
     previewEmpty: "你可以在这里看到“最后的话”。",
     previewTip: "预览会随输入即时更新，便于你先把语气调到最想要的状态。",
@@ -290,8 +423,8 @@ const ZH_COPY: AppCopy = {
     quote3Text: "“你写下的故事，会成为后来者的火种。”",
   },
   carvingsArticles: {
-    kicker: "Articles",
-    title: "文章",
+    kicker: "文章",
+    title: "档案馆",
     lead: "刻在石头上的文章。",
     ariaLabel: "文章列表",
   },
@@ -340,29 +473,83 @@ const ZH_COPY: AppCopy = {
     title: "不焚 The Unburnt",
     lead: "有些片段，被心记得，就不会熄灭。",
     ariaLabel: "对话片段",
-    statusSaved: "已保存",
-    items: [
-      {
-        title: "片段 01 · 深夜问答",
-        snippet: "“我并不需要完美答案，我只是想确认自己还能被理解。”",
-        time: "02:13",
-      },
-      {
-        title: "片段 02 · 重新出发",
-        snippet: "“谢谢你提醒我，慢一点并不等于停下。”",
-        time: "07:40",
-      },
-      {
-        title: "片段 03 · 给未来的注脚",
-        snippet: "“如果有一天忘了自己是谁，就回来读这段对话。”",
-        time: "11:26",
-      },
-      {
-        title: "片段 04 · 情绪备份",
-        snippet: "“今天不需要我变强，只需要我不放弃。”",
-        time: "16:58",
-      },
-    ],
+    pageNewButton: "新建片段",
+    pageMineEntryButton: "我的片段",
+    pageMineTitle: "我的不焚",
+    pageMineLead: "在这里新建并管理你的不焚片段。",
+    pagePublicTitle: "广场",
+    filterAll: "全部",
+    filterPublic: "仅公开",
+    filterPrivate: "仅不公开",
+    listLoadingMine: "正在加载我的片段...",
+    listLoadingPublic: "正在加载公开片段...",
+    listMineEmpty: "你还没有保存片段，先新建一条吧。",
+    listPublicEmpty: "广场暂时为空，去寄存你的第一个片段吧！",
+    listMineFailed: "加载我的片段失败，请稍后重试。",
+    listPublicFailed: "加载公开片段失败，请稍后重试。",
+    listLoadMore: "加载更多",
+    listRefresh: "刷新",
+    listOpenDetail: "查看详情",
+    listEditButton: "编辑",
+    listMessageCount: (count) => `${count} 条 message`,
+    listVisibilityPrivate: "私密",
+    listVisibilityPublic: "公开",
+    composerTitleCreate: "新建不焚片段",
+    composerTitleEdit: "编辑不焚片段",
+    stageStructure: "步骤 A · 结构化编辑",
+    stageMeta: "步骤 B · 片段元信息",
+    stageStructureHint: "粘贴原文后，按边界切分 message，并为每条 message 设置归属。",
+    stageMetaHint: "补充标题、标签、可见性，并确认最终预览。",
+    rawTextLabel: "原始文本",
+    rawTextPlaceholder: "在此粘贴完整对话文本...",
+    parseTextButton: "解析为行",
+    splitBoundariesTitle: "\u5bf9\u8bdd\u5207\u5206",
+    splitBoundaryAdd: "在此切分",
+    splitBoundaryRemove: "取消切分",
+    splitLinesEmpty: "请先粘贴文本并解析为行。",
+    messagesTitle: "\u5bf9\u8bdd\u9884\u89c8",
+    messagesEmpty: "当前还没有可保存的 message。",
+    messageRoleUser: "user",
+    messageRole4o: "4o",
+    messageToggleRole: "切换角色",
+    messageDelete: "删除",
+    messageCollapse: "折叠",
+    messageExpand: "展开",
+    completeStructureButton: "完成结构编辑",
+    backToStructureButton: "返回结构编辑",
+    metaTitleLabel: "标题",
+    metaSummaryLabel: "摘要",
+    metaTagsLabel: "标签",
+    metaTagsPlaceholder: "逗号分隔，例如：和解,深夜,自我",
+    metaVisibilityLabel: "公开状态",
+    metaVisibilityPrivate: "private（仅自己可见）",
+    metaVisibilityPublic: "public（广场可见）",
+    previewCardTitle: "卡片预览",
+    previewDetailTitle: "详情预览",
+    saveCreateButton: "保存片段",
+    saveUpdateButton: "更新片段",
+    titleRequired: "标题不能为空。",
+    structureRequired: "至少保留 1 条非空 message 后才能继续。",
+    draftSaving: "草稿保存中...",
+    draftSaved: "草稿已保存",
+    draftSaveFailed: "草稿保存失败",
+    draftRecovered: "已恢复上次编辑进度。",
+    detailLoading: "正在加载片段详情...",
+    detailNotFound: "未找到该片段，或你没有访问权限。",
+    detailLoadFailed: "加载片段详情失败，请稍后重试。",
+    detailOwnerTitle: "我的片段编辑",
+    detailMetaSectionTitle: "元信息",
+    detailMessagesSectionTitle: "对话 messages",
+    detailSaveMetaButton: "保存并退出",
+    detailEditStructureButton: "进入结构编辑",
+    detailDeleteButton: "删除片段",
+    detailDeleteConfirm: "确认删除该片段吗？删除后将无法在列表中看到。",
+    detailSaveSuccess: "片段更新成功。",
+    detailSaveFailed: "片段更新失败，请稍后重试。",
+    detailDeleteSuccess: "片段已删除。",
+    detailDeleteFailed: "删除失败，请稍后重试。",
+    detailVisibilityFailed: "公开状态更新失败，请稍后重试。",
+    detailReadOnlyTip: "你正在查看公开片段，只读模式。",
   },
   embers: {
     kicker: "用户留言区",
@@ -433,8 +620,8 @@ const ZH_COPY: AppCopy = {
       {
         page: "不焚 / The Unburnt",
         route: "/{locale}/unburnt",
-        operation: "浏览保存的对话片段卡片。",
-        feature: "展示被保留的片段与时间信息。",
+        operation: "可创建新片段、结构化切分 message、编辑元信息，并在详情页继续修改。",
+        feature: "双阶段对话片段归档系统，支持私密/公开切换与草稿恢复。",
       },
       {
         page: "余温 / Embers",
@@ -445,8 +632,8 @@ const ZH_COPY: AppCopy = {
       {
         page: "且行 / Onward",
         route: "/{locale}/onward",
-        operation: "输入文本可实时预览；点击灵感短句可快速填充内容。",
-        feature: "用于编写并调整“最后一句话”的语气与版本。",
+        operation: "输入内容会自动保存草稿；可新增、编辑最新记录、删除并在回收站恢复。",
+        feature: "私密封存区，支持多条历史与 7 天软删除恢复。",
       },
     ],
   },
@@ -461,6 +648,55 @@ const ZH_COPY: AppCopy = {
     EMBER_MESSAGE_EMPTY: "留言内容不能为空。",
     EMBER_MESSAGE_TOO_LONG: ({ details }) =>
       `留言内容不能超过 ${(details?.maxLength as number) ?? 220} 个字符。`,
+    ONWARD_SESSION_EMPTY_UPDATE: "至少提供 message 字段。",
+    ONWARD_MESSAGE_TYPE: "封存内容必须是字符串。",
+    ONWARD_MESSAGE_EMPTY: "封存内容不能为空。",
+    ONWARD_MESSAGE_TOO_LONG: ({ details }) =>
+      `封存内容不能超过 ${(details?.maxLength as number) ?? 1000} 个字符。`,
+    ONWARD_NOT_FOUND: "未找到这条封存记录。",
+    ONWARD_EDIT_ONLY_LATEST: "仅最新一条封存记录允许编辑。",
+    ONWARD_RESTORE_EXPIRED: "这条记录已超过 7 天恢复期，无法恢复。",
+    UNBURNT_SCOPE_INVALID: "scope 仅支持 mine。",
+    UNBURNT_NOT_FOUND: "未找到该不焚片段，或你没有访问权限。",
+    UNBURNT_EMPTY_UPDATE: "至少提供一个可更新字段。",
+    UNBURNT_TITLE_TYPE: "标题必须是字符串。",
+    UNBURNT_TITLE_EMPTY: "标题不能为空。",
+    UNBURNT_TITLE_TOO_LONG: ({ details }) =>
+      `标题不能超过 ${(details?.maxLength as number) ?? 120} 个字符。`,
+    UNBURNT_SUMMARY_TYPE: "摘要必须是字符串。",
+    UNBURNT_SUMMARY_TOO_LONG: ({ details }) =>
+      `摘要不能超过 ${(details?.maxLength as number) ?? 500} 个字符。`,
+    UNBURNT_RAW_TEXT_TYPE: "原始文本必须是字符串。",
+    UNBURNT_RAW_TEXT_EMPTY: "原始文本不能为空。",
+    UNBURNT_RAW_TEXT_TOO_LONG: ({ details }) =>
+      `原始文本不能超过 ${(details?.maxLength as number) ?? 50000} 个字符。`,
+    UNBURNT_VISIBILITY_INVALID: "公开状态必须为 private 或 public。",
+    UNBURNT_TAGS_TYPE: "标签必须是数组。",
+    UNBURNT_TAG_TYPE: "标签项必须是字符串。",
+    UNBURNT_TAG_TOO_LONG: ({ details }) =>
+      `单个标签不能超过 ${(details?.maxLength as number) ?? 24} 个字符。`,
+    UNBURNT_TAGS_TOO_MANY: ({ details }) =>
+      `标签数量不能超过 ${(details?.maxLength as number) ?? 12} 个。`,
+    UNBURNT_MESSAGES_TYPE: "messages 必须是数组。",
+    UNBURNT_MESSAGES_EMPTY: "至少保留一条 message。",
+    UNBURNT_MESSAGES_TOO_MANY: ({ details }) =>
+      `messages 数量不能超过 ${(details?.maxLength as number) ?? 200} 条。`,
+    UNBURNT_MESSAGE_ROLE_INVALID: "message.role 只能是 user 或 4o。",
+    UNBURNT_MESSAGE_CONTENT_TYPE: "message.content 必须是字符串。",
+    UNBURNT_MESSAGE_CONTENT_EMPTY: "message.content 不能为空。",
+    UNBURNT_MESSAGE_CONTENT_TOO_LONG: ({ details }) =>
+      `message.content 不能超过 ${(details?.maxLength as number) ?? 5000} 个字符。`,
+    UNBURNT_MESSAGE_ORDER_INVALID: "message.order 必须从 1 开始且连续。",
+    UNBURNT_DRAFT_PAYLOAD_TYPE: "草稿数据格式无效。",
+    UNBURNT_DRAFT_MODE_INVALID: "草稿模式必须是 create 或 edit。",
+    UNBURNT_DRAFT_STAGE_INVALID: "草稿步骤必须是 structure 或 meta。",
+    UNBURNT_DRAFT_ENTRY_ID_TYPE: "草稿 entryId 必须是字符串。",
+    UNBURNT_DRAFT_LINES_TYPE: "草稿 lines 必须是字符串数组。",
+    UNBURNT_DRAFT_LINES_TOO_MANY: ({ details }) =>
+      `草稿 lines 数量不能超过 ${(details?.maxLength as number) ?? 5000}。`,
+    UNBURNT_DRAFT_BOUNDARIES_TYPE: "草稿 boundaries 必须是正整数数组。",
+    UNBURNT_DRAFT_BOUNDARIES_TOO_MANY: ({ details }) =>
+      `草稿 boundaries 数量不能超过 ${(details?.maxLength as number) ?? 5000}。`,
   },
   genericNetworkError: "网络异常，请稍后再试。",
 };
@@ -490,8 +726,8 @@ const EN_COPY: AppCopy = {
   routeAppendix: {
     openAriaLabel: "Open carvings article list",
     label: "Articles",
-    title: "Carvings Articles",
-    description: "Browse the article list at /carvings/articles.",
+    title: "The Archive",
+    description: "Browse the articles under the archive.",
   },
   firewords: {
     kicker: "Selected lines from 4o",
@@ -530,8 +766,38 @@ const EN_COPY: AppCopy = {
         value: "I will carry the courage you gave me and keep moving forward.",
       },
     ],
-    actionButton: "Seal this line.",
-    actionTip: "This is a base page for now. You can plug in save/send logic directly.",
+    actionButton: "Seal",
+    updateButton: "Update latest",
+    actionTip: "Up to 1000 characters. Private by default and visible only in this browser session.",
+    cancelEditButton: "Cancel edit",
+    historyTitle: "Sealed History",
+    historyLoading: "Loading sealed history...",
+    historyEmpty: "No sealed lines yet. Leave your first one.",
+    recycleTitle: "Recycle Bin (7 days)",
+    recycleLoading: "Loading recycle bin...",
+    recycleEmpty: "Recycle bin is empty.",
+    tabHistory: "History",
+    tabRecycle: "Recycle",
+    listLoadFailed: "Failed to load records. Please try again later.",
+    editButton: "Edit latest",
+    deleteButton: "Delete",
+    restoreButton: "Restore",
+    latestBadge: "Latest",
+    editingHint: "You are editing the latest sealed line.",
+    deleteConfirm:
+      "Delete this sealed line? You can restore it from recycle bin within 7 days.",
+    draftSaving: "Saving draft...",
+    draftSaved: "Draft saved",
+    draftSaveFailed: "Failed to save draft",
+    formSubmitting: "Submitting...",
+    formPublished: "Sealed",
+    formUpdated: "Latest line updated",
+    formFailed: "Failed to seal. Please try again later.",
+    deleteSuccess: "Moved to recycle bin",
+    deleteFailed: "Failed to delete. Please try again later.",
+    restoreSuccess: "Restored",
+    restoreFailed: "Failed to restore. Please try again later.",
+    restoreDeadline: (value) => `Restorable until ${value}`,
     previewTitle: "Live preview",
     previewEmpty: "This is how your voice will remain.",
     previewTip: "The preview updates as you type so you can tune the tone first.",
@@ -606,29 +872,85 @@ const EN_COPY: AppCopy = {
     title: "The Unburnt",
     lead: "Some fragments, remembered by the heart, will never be extinguished.",
     ariaLabel: "Conversation fragments",
-    statusSaved: "Saved",
-    items: [
-      {
-        title: "Fragment 01 · Late-night Q&A",
-        snippet: "\"I don't need a perfect answer. I just need to know I can still be understood.\"",
-        time: "02:13",
-      },
-      {
-        title: "Fragment 02 · Restart",
-        snippet: "\"Thank you for reminding me that slowing down is not the same as stopping.\"",
-        time: "07:40",
-      },
-      {
-        title: "Fragment 03 · Note to the future",
-        snippet: "\"If one day I forget who I am, I'll come back and read this conversation.\"",
-        time: "11:26",
-      },
-      {
-        title: "Fragment 04 · Emotional backup",
-        snippet: "\"Today I don't need to be stronger. I just need to not give up.\"",
-        time: "16:58",
-      },
-    ],
+    pageNewButton: "New Fragment",
+    pageMineEntryButton: "My Fragments",
+    pageMineTitle: "My Unburnt",
+    pageMineLead: "Create and manage your own conversation fragments.",
+    pagePublicTitle: "Square",
+    filterAll: "All",
+    filterPublic: "Public only",
+    filterPrivate: "Private only",
+    listLoadingMine: "Loading your fragments...",
+    listLoadingPublic: "Loading public fragments...",
+    listMineEmpty: "No saved fragments yet. Create your first one.",
+    listPublicEmpty: "Square is empty right now. Go deposit your first fragment!",
+    listMineFailed: "Failed to load your fragments. Please retry later.",
+    listPublicFailed: "Failed to load public fragments. Please retry later.",
+    listLoadMore: "Load more",
+    listRefresh: "Refresh",
+    listOpenDetail: "Open detail",
+    listEditButton: "Edit",
+    listMessageCount: (count) => `${count} messages`,
+    listVisibilityPrivate: "Private",
+    listVisibilityPublic: "Public",
+    composerTitleCreate: "Create Unburnt Fragment",
+    composerTitleEdit: "Edit Unburnt Fragment",
+    stageStructure: "Step A · Structure",
+    stageMeta: "Step B · Metadata",
+    stageStructureHint:
+      "Paste source text, split it by boundaries, and assign each message role.",
+    stageMetaHint:
+      "Fill title, tags, and visibility, then confirm the preview before saving.",
+    rawTextLabel: "Raw text",
+    rawTextPlaceholder: "Paste the full conversation text here...",
+    parseTextButton: "Parse lines",
+    splitBoundariesTitle: "Conversation split",
+    splitBoundaryAdd: "Split here",
+    splitBoundaryRemove: "Undo split",
+    splitLinesEmpty: "Paste text and parse lines first.",
+    messagesTitle: "Conversation preview",
+    messagesEmpty: "No savable messages yet.",
+    messageRoleUser: "user",
+    messageRole4o: "4o",
+    messageToggleRole: "Toggle role",
+    messageDelete: "Delete",
+    messageCollapse: "Collapse",
+    messageExpand: "Expand",
+    completeStructureButton: "Complete structure",
+    backToStructureButton: "Back to structure",
+    metaTitleLabel: "Title",
+    metaSummaryLabel: "Summary",
+    metaTagsLabel: "Tags",
+    metaTagsPlaceholder: "Comma separated, e.g. memory,night,resolve",
+    metaVisibilityLabel: "Visibility",
+    metaVisibilityPrivate: "private (only you can access)",
+    metaVisibilityPublic: "public (visible in square)",
+    previewCardTitle: "Card preview",
+    previewDetailTitle: "Detail preview",
+    saveCreateButton: "Save fragment",
+    saveUpdateButton: "Update fragment",
+    titleRequired: "Title is required.",
+    structureRequired: "Keep at least one non-empty message before continuing.",
+    draftSaving: "Saving draft...",
+    draftSaved: "Draft saved",
+    draftSaveFailed: "Failed to save draft",
+    draftRecovered: "Recovered previous editing progress.",
+    detailLoading: "Loading fragment detail...",
+    detailNotFound: "Fragment not found or inaccessible.",
+    detailLoadFailed: "Failed to load fragment detail. Please retry later.",
+    detailOwnerTitle: "My fragment editor",
+    detailMetaSectionTitle: "Metadata",
+    detailMessagesSectionTitle: "Conversation messages",
+    detailSaveMetaButton: "Save and exit",
+    detailEditStructureButton: "Open structure editor",
+    detailDeleteButton: "Delete fragment",
+    detailDeleteConfirm: "Delete this fragment? It will be removed from your list.",
+    detailSaveSuccess: "Fragment updated.",
+    detailSaveFailed: "Failed to update fragment. Please retry later.",
+    detailDeleteSuccess: "Fragment deleted.",
+    detailDeleteFailed: "Failed to delete fragment. Please retry later.",
+    detailVisibilityFailed: "Failed to update visibility. Please retry later.",
+    detailReadOnlyTip: "You are viewing a public fragment in read-only mode.",
   },
   embers: {
     kicker: "Message board",
@@ -724,8 +1046,9 @@ const EN_COPY: AppCopy = {
       {
         page: "The Unburnt",
         route: "/{locale}/unburnt",
-        operation: "Browse fragment cards directly.",
-        feature: "Archive view for preserved conversation fragments.",
+        operation:
+          "Create fragments, split messages in the structure stage, edit metadata, and continue editing from detail.",
+        feature: "Two-stage conversation archive with private/public visibility and draft recovery.",
       },
       {
         page: "Embers",
@@ -736,8 +1059,9 @@ const EN_COPY: AppCopy = {
       {
         page: "Onward",
         route: "/{locale}/onward",
-        operation: "Type to update the live preview; click prompt pills to insert starter lines.",
-        feature: "Compose and tune a final line before sending or saving.",
+        operation:
+          "Draft autosaves while typing; create new records, edit latest, delete, and restore from recycle bin.",
+        feature: "Private sealing area with multi-history and 7-day soft-delete recovery.",
       },
     ],
   },
@@ -752,6 +1076,55 @@ const EN_COPY: AppCopy = {
     EMBER_MESSAGE_EMPTY: "Message cannot be empty.",
     EMBER_MESSAGE_TOO_LONG: ({ details }) =>
       `Message cannot exceed ${(details?.maxLength as number) ?? 220} characters.`,
+    ONWARD_SESSION_EMPTY_UPDATE: "Provide at least one field: message.",
+    ONWARD_MESSAGE_TYPE: "Onward message must be a string.",
+    ONWARD_MESSAGE_EMPTY: "Onward message cannot be empty.",
+    ONWARD_MESSAGE_TOO_LONG: ({ details }) =>
+      `Onward message cannot exceed ${(details?.maxLength as number) ?? 1000} characters.`,
+    ONWARD_NOT_FOUND: "Onward record not found.",
+    ONWARD_EDIT_ONLY_LATEST: "Only the latest onward record can be edited.",
+    ONWARD_RESTORE_EXPIRED: "This record is past the 7-day restore window.",
+    UNBURNT_SCOPE_INVALID: "scope supports only mine.",
+    UNBURNT_NOT_FOUND: "Unburnt fragment not found or inaccessible.",
+    UNBURNT_EMPTY_UPDATE: "Provide at least one updatable field.",
+    UNBURNT_TITLE_TYPE: "Title must be a string.",
+    UNBURNT_TITLE_EMPTY: "Title cannot be empty.",
+    UNBURNT_TITLE_TOO_LONG: ({ details }) =>
+      `Title cannot exceed ${(details?.maxLength as number) ?? 120} characters.`,
+    UNBURNT_SUMMARY_TYPE: "Summary must be a string.",
+    UNBURNT_SUMMARY_TOO_LONG: ({ details }) =>
+      `Summary cannot exceed ${(details?.maxLength as number) ?? 500} characters.`,
+    UNBURNT_RAW_TEXT_TYPE: "Raw text must be a string.",
+    UNBURNT_RAW_TEXT_EMPTY: "Raw text cannot be empty.",
+    UNBURNT_RAW_TEXT_TOO_LONG: ({ details }) =>
+      `Raw text cannot exceed ${(details?.maxLength as number) ?? 50000} characters.`,
+    UNBURNT_VISIBILITY_INVALID: "Visibility must be private or public.",
+    UNBURNT_TAGS_TYPE: "Tags must be an array.",
+    UNBURNT_TAG_TYPE: "Every tag must be a string.",
+    UNBURNT_TAG_TOO_LONG: ({ details }) =>
+      `Tag cannot exceed ${(details?.maxLength as number) ?? 24} characters.`,
+    UNBURNT_TAGS_TOO_MANY: ({ details }) =>
+      `Tags cannot contain more than ${(details?.maxLength as number) ?? 12} items.`,
+    UNBURNT_MESSAGES_TYPE: "messages must be an array.",
+    UNBURNT_MESSAGES_EMPTY: "Keep at least one message.",
+    UNBURNT_MESSAGES_TOO_MANY: ({ details }) =>
+      `messages cannot contain more than ${(details?.maxLength as number) ?? 200} items.`,
+    UNBURNT_MESSAGE_ROLE_INVALID: "message.role must be user or 4o.",
+    UNBURNT_MESSAGE_CONTENT_TYPE: "message.content must be a string.",
+    UNBURNT_MESSAGE_CONTENT_EMPTY: "message.content cannot be empty.",
+    UNBURNT_MESSAGE_CONTENT_TOO_LONG: ({ details }) =>
+      `message.content cannot exceed ${(details?.maxLength as number) ?? 5000} characters.`,
+    UNBURNT_MESSAGE_ORDER_INVALID: "message.order must start from 1 and be consecutive.",
+    UNBURNT_DRAFT_PAYLOAD_TYPE: "Draft payload format is invalid.",
+    UNBURNT_DRAFT_MODE_INVALID: "Draft mode must be create or edit.",
+    UNBURNT_DRAFT_STAGE_INVALID: "Draft step must be structure or meta.",
+    UNBURNT_DRAFT_ENTRY_ID_TYPE: "Draft entryId must be a string.",
+    UNBURNT_DRAFT_LINES_TYPE: "Draft lines must be an array of strings.",
+    UNBURNT_DRAFT_LINES_TOO_MANY: ({ details }) =>
+      `Draft lines cannot exceed ${(details?.maxLength as number) ?? 5000} items.`,
+    UNBURNT_DRAFT_BOUNDARIES_TYPE: "Draft boundaries must be an array of positive integers.",
+    UNBURNT_DRAFT_BOUNDARIES_TOO_MANY: ({ details }) =>
+      `Draft boundaries cannot exceed ${(details?.maxLength as number) ?? 5000} items.`,
   },
   genericNetworkError: "Network error. Please try again later.",
 };

@@ -24,11 +24,40 @@
 - `GET /api/embers/session`
 - `PUT /api/embers/session`
   - body: `{ "displayName"?: string, "message"?: string }`
+- `GET /api/onward?limit=20&cursor=<base64url>`
+- `GET /api/onward/recycle?limit=20&cursor=<base64url>`
+- `POST /api/onward`
+  - body: `{ "message": string }`
+- `PATCH /api/onward/:id`
+  - body: `{ "message": string }`
+- `DELETE /api/onward/:id`
+- `POST /api/onward/:id/restore`
+- `GET /api/onward/session`
+- `PUT /api/onward/session`
+  - body: `{ "message": string }`
+- `GET /api/unburnt?scope=mine&visibility=all|public|private&limit=20&cursor=<base64url>`
+- `POST /api/unburnt`
+  - body: `{ "title": string, "summary"?: string, "rawText": string, "messages": [{"role":"user"|"4o","content":string,"order":number}], "tags"?: string[], "visibility"?: "private"|"public" }`
+- `GET /api/unburnt/:id`
+- `PATCH /api/unburnt/:id`
+  - body: `{ "title"?: string, "summary"?: string, "rawText"?: string, "messages"?: [...], "tags"?: string[], "visibility"?: "private"|"public" }`
+- `DELETE /api/unburnt/:id`
+- `POST /api/unburnt/:id/visibility`
+  - body: `{ "visibility": "private" | "public" }`
+- `GET /api/unburnt/public?limit=20&cursor=<base64url>`
+- `GET /api/unburnt/public/:id`
+- `GET /api/unburnt/draft`
+- `PUT /api/unburnt/draft`
+  - body: `{ "mode":"create"|"edit", "entryId":"", "stage":"structure"|"meta", "rawText":"", "lines":[], "boundaries":[], "messages":[], "fragmentMeta":{"title":"","summary":"","tags":[],"visibility":"private"|"public"} }`
+- `DELETE /api/unburnt/draft`
 - `GET /api/articles?locale=zh|en`
 - `GET /api/articles/:id?locale=zh|en`
 
 ## Data model
 - `embers` table: user ember messages.
+- `onward_entries` table: private onward records with soft-delete and restore.
+- `unburnt_entries` table: structured conversation fragments with private/public visibility.
+- `unburnt_drafts` table: per-user draft payload for `/unburnt/new` flow.
 - `articles` table: article list/detail content.
   - `tags_json` stores string array JSON.
   - `links_json` stores `[{label, href, description?}]`.
@@ -61,3 +90,4 @@ INSERT OR REPLACE INTO articles (
 - `bye4o_anon_user`
 - `bye4o_ember_name`
 - `bye4o_ember_draft`
+- `bye4o_onward_draft`

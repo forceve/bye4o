@@ -55,7 +55,3 @@ For implementation-level details, see:
 Active and evolving.
 
 The direction remains the same: preserve what matters, and make it legible for future readers.
-
-## License
-
-Private repository.
