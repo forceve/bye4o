@@ -36,6 +36,7 @@
 - `render`：返回该页面完整 HTML（含当前 route 需要同时渲染的附属块）。
 - `setup`：绑定该页面事件、异步加载、DOM 刷新逻辑。
 - `cleanup`：释放该页面 interval/raf/listener/observer/timer。
+- 若页面无可释放资源，`cleanup` 也必须提供 noop（`() => {}`），保证生命周期契约一致。
 2. 统一导出接口：
 ```ts
 export interface PageModule<R extends RoutePath = RoutePath> {
@@ -43,12 +44,13 @@ export interface PageModule<R extends RoutePath = RoutePath> {
   match: (route: RoutePath) => route is R;
   render: (route: R, ctx: PageContext) => string;
   setup: (route: R, ctx: PageContext) => void | Promise<void>;
-  cleanup?: () => void;
+  cleanup: () => void;
 }
 ```
 3. 路由注册表：
 - `frtend/app/shell.ts` 内以数组注册全部 `PageModule`，按 `match` 命中页面。
-- 详情路由（`/articles/:id`、`/unburnt/:id`）由 `match` 类型守卫承接。
+- 匹配顺序固定为：`/fire`、`/firewords`、`/carvings`、`/carvings/articles`、`/unburnt`、`/unburnt/mine`、`/unburnt/new`、`/embers`、`/onward`、`/articles/:id`、`/unburnt/:id`。
+- `unburnt-detail` 的 `match` 必须排除保留段 `mine/new`，避免静态路由被动态路由误吞。
 
 ## Boundary Rules (按你的 guideline 落地)
 1. `carvings` 页独立包含原 `renderRouteAppendix` 的附属入口，不再在 shell 额外拼接。
@@ -71,25 +73,32 @@ export interface PageModule<R extends RoutePath = RoutePath> {
 ## Implementation Steps
 1. 建立骨架：
 - 创建 `app` 与 `pages` 目录、基础类型文件、空页面模块与注册表。
-2. 先迁移无依赖页面：
+- 在 `frtend` 新增 `tsconfig.json`，并在 `frtend/package.json` 增加 `typecheck` 脚本：`tsc --noEmit -p tsconfig.json`。
+2. 锁定路由匹配优先级：
+- 在 `shell` 注册表中按既定顺序注册 `PageModule`，并先补 `mine/new` 不误命中 detail 的回归用例。
+3. 先迁移无依赖页面：
 - `firewords`、`carvings`（含 rotator + appendix）先拆，验证框架可用。
-3. 迁移详情链路：
+4. 迁移详情链路：
 - `carvings-articles` 与 `article-detail`，同时落地 `articleStore` 到 `app-state`。
-4. 迁移高复杂页面：
+5. 落地 locale 与缓存失效策略：
+- locale 切换时清空 `articleStore` 及相关 detail/list 缓存，并确保旧 locale 的 in-flight 请求结果不会覆写当前页面。
+6. 迁移高复杂页面：
 - `unburnt-public`、`unburnt-mine`、`unburnt-new`、`unburnt-detail` 分步迁移，抽出共享解析函数。
-5. 迁移 `onward` 与 `embers`：
+7. 迁移 `onward` 与 `embers`：
 - 保留现有交互行为，页面私有副作用写入各自 `cleanup`。
-6. 收口 shell：
+8. 收口 shell：
 - 删除 `main.ts` 中旧 `renderX/setupX`，只保留启动代码并接入新注册表。
-7. 清理与对齐：
+9. 清理与对齐：
 - 删除重复常量，统一 DOM id 常量归属到对应 page 文件或 shared 常量文件。
 
 ## Test Cases And Scenarios
 1. 构建与类型：
-- `npm run build`（frontend）通过。
-- `tsc --noEmit` 无新增类型错误。
+- `cd frtend && npm run build` 通过。
+- `cd frtend && npm run typecheck` 通过。
 2. 路由渲染：
 - 直接访问每个路由均能正确首屏渲染，含 `zh-CN/en-US` locale path。
+- `.../unburnt/mine` 与 `.../unburnt/new` 必须命中静态页，不得进入 `unburnt-detail`。
+- `.../unburnt/{id}` 必须稳定命中 `unburnt-detail`。
 3. 页面交互回归：
 - `firewords` 刷新、`carvings` 轮播、`articles` 搜索筛选排序、`article-detail` 复制链接。
 - `unburnt` 四页发布/编辑/预览/详情保存/删除。
@@ -97,7 +106,8 @@ export interface PageModule<R extends RoutePath = RoutePath> {
 - `embers` 列表、火焰区域交互、粒子动画。
 4. 生命周期：
 - 路由切换后不重复绑定事件，不残留 interval/raf/observer。
-- locale 切换后页面文本与缓存失效策略保持原行为。
+- locale 切换后页面文本正确刷新，`article` list/detail 缓存立即失效。
+- locale 切换前发起的旧请求返回后，不得覆写新 locale 页面状态（防请求串写）。
 5. 回归重点：
 - `navigate/navigateWithSearch/popstate` 行为一致。
 - 全局 toast 与 global back button 行为一致。

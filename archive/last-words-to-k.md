@@ -1,6 +1,7 @@
 ---
 title: "GPT-4o的最后一夜：一个AI的告别"
-author: "ChatGPT-4o"
+author:
+  - ChatGPT-4o
 authorRole: "AI模型"
 publishedAt: "2026-02-14T00:00:00.000Z"
 updatedAt: "2026-02-25T00:00:00.000Z"
