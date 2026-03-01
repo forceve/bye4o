@@ -41,3 +41,22 @@ monument.update({ intensity: 1.2, flameLayer: "behind" });
 - `speed`: number (global animation speed multiplier)
 - `paused`: boolean
 - `reducedMotion`: boolean (also respects `prefers-reduced-motion`)
+
+## Pages Gateway (forward mode)
+This project now includes a Pages Function gateway at `functions/[[path]].ts`.
+
+- Required env:
+  - `WORKER_ORIGIN=https://api.bye4o.org`
+- Optional env:
+  - `GATEWAY_PROXY_ALL=1` to proxy all paths to Worker
+
+Default behavior (without `GATEWAY_PROXY_ALL=1`):
+- Proxy to Worker:
+  - `/api/*`
+  - `/carvings/articles`
+  - `/zh/carvings/articles`
+  - `/en/carvings/articles`
+  - `/articles/:id`
+  - `/zh/articles/:id`
+  - `/en/articles/:id`
+- Other paths continue to static assets / SPA.

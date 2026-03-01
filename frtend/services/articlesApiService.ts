@@ -1,4 +1,4 @@
-import { apiFetch } from "./apiClient";
+import { apiFetch, apiFetchRaw } from "./apiClient";
 
 export interface ArticleAuthor {
   name: string;
@@ -43,6 +43,11 @@ export interface ArticleDetailResponse {
   item: ArticleDetailItem;
 }
 
+export interface ArticleSourceMarkdownResponse {
+  content: string;
+  fileName: string;
+}
+
 export type ArticleLocale = "zh" | "en";
 
 const ARTICLES_BASE = "/api/articles";
@@ -61,6 +66,55 @@ class ArticlesApiService {
       `${ARTICLES_BASE}/${encodeURIComponent(articleId.trim().toLowerCase())}?${query.toString()}`
     );
   }
+
+  async getSourceMarkdown(
+    articleId: string,
+    locale: ArticleLocale,
+    download = false
+  ): Promise<ArticleSourceMarkdownResponse> {
+    const query = new URLSearchParams();
+    query.set("locale", locale);
+    if (download) {
+      query.set("download", "1");
+    }
+
+    const normalizedId = encodeURIComponent(articleId.trim().toLowerCase());
+    const response = await apiFetchRaw(
+      `${ARTICLES_BASE}/${normalizedId}/source?${query.toString()}`
+    );
+    const content = await response.text();
+    const fileName =
+      parseFileNameFromContentDisposition(response.headers.get("Content-Disposition")) ??
+      `${articleId.trim().toLowerCase()}.${locale}.md`;
+
+    return {
+      content,
+      fileName,
+    };
+  }
 }
 
 export const articlesApiService = new ArticlesApiService();
+
+function parseFileNameFromContentDisposition(value: string | null): string | null {
+  if (!value) {
+    return null;
+  }
+
+  const filenameStar = value.match(/filename\*\s*=\s*UTF-8''([^;]+)/i);
+  if (filenameStar?.[1]) {
+    try {
+      return decodeURIComponent(filenameStar[1].trim());
+    } catch {
+      // ignore and try plain filename
+    }
+  }
+
+  const plain = value.match(/filename\s*=\s*"([^"]+)"/i) ?? value.match(/filename\s*=\s*([^;]+)/i);
+  if (!plain?.[1]) {
+    return null;
+  }
+
+  const normalized = plain[1].trim().replace(/^"(.*)"$/, "$1");
+  return normalized || null;
+}

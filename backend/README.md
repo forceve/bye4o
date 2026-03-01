@@ -16,6 +16,13 @@
   - `predeploy -> npm run migrate:remote`
   - then `wrangler deploy`
 
+## Route binding note
+- The article direct-output pages are served by this Worker.
+- Bind only article paths on `bye4o.org` to this Worker:
+  - `/articles/*`, `/zh/articles/*`, `/en/articles/*`
+  - `/carvings/articles`, `/zh/carvings/articles`, `/en/carvings/articles`
+- Keep all non-article paths on the current static site to avoid regressions.
+
 ## API
 - `GET /api/health`
 - `GET /api/embers?limit=20&cursor=<base64url>`
@@ -52,6 +59,13 @@
 - `DELETE /api/unburnt/draft`
 - `GET /api/articles?locale=zh|en`
 - `GET /api/articles/:id?locale=zh|en`
+- `GET /api/articles/:id/source?locale=zh|en[&download=1]`
+- `GET /carvings/articles` (HTML direct output, default zh)
+- `GET /zh/carvings/articles` (HTML direct output)
+- `GET /en/carvings/articles` (HTML direct output)
+- `GET /articles/:id` (HTML direct output, default zh)
+- `GET /zh/articles/:id` (HTML direct output)
+- `GET /en/articles/:id` (HTML direct output)
 
 ## Data model
 - `embers` table: user ember messages.

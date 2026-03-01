@@ -168,6 +168,11 @@ interface AppCopy {
     relatedLinks: string;
     backToList: string;
     copyLink: string;
+    download: string;
+    downloadMd: string;
+    downloadPdf: string;
+    downloadPreparing: string;
+    downloadFailed: string;
     copied: string;
     previousArticle: string;
     nextArticle: string;
@@ -460,6 +465,11 @@ const ZH_COPY: AppCopy = {
     relatedLinks: "相关链接",
     backToList: "返回文章列表",
     copyLink: "复制链接",
+    download: "下载",
+    downloadMd: "下载 Markdown",
+    downloadPdf: "下载 PDF",
+    downloadPreparing: "正在准备下载...",
+    downloadFailed: "下载失败，请稍后重试。",
     copied: "已复制",
     previousArticle: "上一篇",
     nextArticle: "下一篇",
@@ -859,6 +869,11 @@ const EN_COPY: AppCopy = {
     relatedLinks: "Related links",
     backToList: "Back to article list",
     copyLink: "Copy link",
+    download: "Download",
+    downloadMd: "Download Markdown",
+    downloadPdf: "Download PDF",
+    downloadPreparing: "Preparing download...",
+    downloadFailed: "Download failed. Please try again later.",
     copied: "Copied",
     previousArticle: "Previous article",
     nextArticle: "Next article",
