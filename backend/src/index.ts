@@ -1,5 +1,11 @@
 import { handleHealth } from "./modules/health/handlers";
-import { handleGetArticle, handleListArticles } from "./modules/articles/handlers";
+import {
+  handleGetArticle,
+  handleGetArticleSourceMarkdown,
+  handleListArticles,
+  handleRenderArticleDetailPage,
+  handleRenderArticleListPage,
+} from "./modules/articles/handlers";
 import { ensureAnonUserId } from "./modules/embers/cookies";
 import {
   handleCreateEmber,
@@ -43,6 +49,8 @@ import {
   UNBURNT_PUBLIC_ROUTE,
   isApiPath,
   parseArticleIdFromPath,
+  parseArticleSourceIdFromPath,
+  parseWebsiteArticleRoute,
   isEmbersPath,
   isOnwardPath,
   isUnburntPath,
@@ -65,6 +73,28 @@ export default {
     const pathname = url.pathname;
 
     if (!isApiPath(pathname)) {
+      if (request.method === "GET") {
+        const websiteArticleRoute = parseWebsiteArticleRoute(pathname);
+        if (websiteArticleRoute?.kind === "list") {
+          const response = await handleRenderArticleListPage(
+            request,
+            env,
+            websiteArticleRoute.locale
+          );
+          return withCommonHeaders(response, request, env.CORS_ORIGIN, []);
+        }
+
+        if (websiteArticleRoute?.kind === "detail") {
+          const response = await handleRenderArticleDetailPage(
+            request,
+            env,
+            websiteArticleRoute.locale,
+            websiteArticleRoute.articleId
+          );
+          return withCommonHeaders(response, request, env.CORS_ORIGIN, []);
+        }
+      }
+
       return json(
         {
           error: ErrorCodes.NotFound,
@@ -94,6 +124,25 @@ export default {
         response = handleHealth();
       } else if (pathname === ARTICLES_ROUTE && request.method === "GET") {
         response = await handleListArticles(request, env);
+      } else if (
+        pathname.startsWith(`${ARTICLES_ROUTE}/`) &&
+        pathname.endsWith("/source") &&
+        request.method === "GET"
+      ) {
+        const articleId = parseArticleSourceIdFromPath(pathname);
+        if (!articleId) {
+          response = json(
+            {
+              error: ErrorCodes.NotFound,
+              code: ErrorCodes.NotFound,
+              message: "Route not found.",
+              details: null,
+            },
+            404
+          );
+        } else {
+          response = await handleGetArticleSourceMarkdown(request, env, articleId);
+        }
       } else if (pathname.startsWith(`${ARTICLES_ROUTE}/`) && request.method === "GET") {
         const articleId = parseArticleIdFromPath(pathname);
         if (!articleId) {

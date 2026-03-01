@@ -157,6 +157,10 @@ const ARTICLES_RESULTS_ID = "carvings-articles-results";
 const ARTICLES_RESULTS_COUNT_ID = "carvings-articles-results-count";
 const ARTICLE_BACK_BUTTON_ID = "article-back-button";
 const ARTICLE_COPY_LINK_BUTTON_ID = "article-copy-link-button";
+const ARTICLE_DOWNLOAD_MENU_TRIGGER_ID = "article-download-menu-trigger";
+const ARTICLE_DOWNLOAD_MENU_ID = "article-download-menu";
+const ARTICLE_DOWNLOAD_MD_BUTTON_ID = "article-download-md-button";
+const ARTICLE_DOWNLOAD_PDF_BUTTON_ID = "article-download-pdf-button";
 const ARTICLE_COPY_LINK_FEEDBACK_MS = 1600;
 const FIRE_BRIGHTNESS_POP_MS = 720;
 const FIRE_BG_DIM_MIN = 0;
@@ -325,6 +329,7 @@ let unburntPageCleanup: (() => void) | null = null;
 let embersPageCleanup: (() => void) | null = null;
 let onwardPageCleanup: (() => void) | null = null;
 let carvingsTextRotatorCleanup: (() => void) | null = null;
+let articleDetailDownloadMenuCleanup: (() => void) | null = null;
 let nextEmberParticleId = 1;
 let currentLocale: Locale = readPreferredLocale();
 let currentRoute: RoutePath = ROUTES.fire;
@@ -473,6 +478,7 @@ export function renderApp() {
   cleanupEmbersPage();
   cleanupOnwardPage();
   cleanupCarvingsTextRotator();
+  cleanupArticleDetailDownloadMenu();
 
   // 婵犵數濮烽弫鍛婃叏閻戣棄鏋侀柟闂寸绾惧鏌ｉ幇顒佹儓缂佺姳鍗抽弻鐔兼⒒鐎靛壊妲紓浣哄Х婵炩偓闁哄瞼鍠栭幃褔宕奸悢鍝勫殥缂傚倷鑳舵慨鐢告偋閺囥垹鐓橀柟杈鹃檮閸嬫劙鏌熺紒妯虹瑲婵炲牆鐖煎鍝勭暦閸モ晛绗″┑鐐跺皺閸犳牠鐛崘銊庢棃宕ㄩ鑺ョ彸闂佸湱鍘ч悺銊ф崲閸曨垱鍎庨幖绮规濞撳鏌曢崼婵嗘殭闁逞屽墯濞茬喖鐛繝鍌ゆ建闁逞屽墮椤?navbar controller
   if (currentNavController) {
@@ -966,6 +972,15 @@ export function cleanupCarvingsTextRotator() {
 
   carvingsTextRotatorCleanup();
   carvingsTextRotatorCleanup = null;
+}
+
+export function cleanupArticleDetailDownloadMenu() {
+  if (!articleDetailDownloadMenuCleanup) {
+    return;
+  }
+
+  articleDetailDownloadMenuCleanup();
+  articleDetailDownloadMenuCleanup = null;
 }
 
 function setupFireEntryGate() {
@@ -1662,9 +1677,17 @@ function renderCarvingsArticleRow(article: ArticleListItem): string {
   const tags = article.tags
     .map((tag) => `<span class="carvings-article-row__tag">${escapeHtml(tag)}</span>`)
     .join("");
+  const localizedHref = buildLocalizedPath(buildArticleRoute(article.id), currentLocale);
+  const openLabel = `${articleCopy.readLabel}: ${article.title}`;
 
   return `
-    <article class="carvings-article-row">
+    <article
+      class="carvings-article-row carvings-article-row--interactive"
+      role="link"
+      tabindex="0"
+      data-open-article="${escapeAttribute(article.id)}"
+      aria-label="${escapeAttribute(openLabel)}"
+    >
       <p class="carvings-article-row__meta">
         <span>${formatArticleDate(article.publishedAt)}</span>
         <span>${articleCopy.articleMetaBy} ${escapeHtml(article.author.name)}</span>
@@ -1672,26 +1695,23 @@ function renderCarvingsArticleRow(article: ArticleListItem): string {
         <span>${escapeHtml(article.category)}</span>
       </p>
 
-      <button
-        type="button"
-        class="carvings-article-row__title"
-        data-open-article="${escapeAttribute(article.id)}"
-      >
-        ${escapeHtml(article.title)}
-      </button>
+      <h2 class="carvings-article-row__title">${escapeHtml(article.title)}</h2>
 
       ${summary}
 
       <div class="carvings-article-row__footer">
         <div class="carvings-article-row__tags">${tags}</div>
-        <button
-          type="button"
-          class="carvings-article-row__open"
-          data-open-article="${escapeAttribute(article.id)}"
-        >
-          ${articleCopy.readLabel}
-        </button>
+        <span class="carvings-article-row__open">${articleCopy.readLabel}</span>
       </div>
+
+      <a
+        class="carvings-article-row__robot-link"
+        href="${escapeAttribute(localizedHref)}"
+        tabindex="-1"
+        aria-hidden="true"
+      >
+        ${escapeHtml(article.title)}
+      </a>
     </article>
   `;
 }
@@ -1856,17 +1876,53 @@ export function renderArticleDetailPage(route: ArticleDetailRoutePath): string {
           >
             ${articleCopy.copyLink}
           </button>
+          <div class="article-download-menu">
+            <button
+              id="${ARTICLE_DOWNLOAD_MENU_TRIGGER_ID}"
+              type="button"
+              class="action-button"
+              aria-haspopup="menu"
+              aria-expanded="false"
+              aria-controls="${ARTICLE_DOWNLOAD_MENU_ID}"
+            >
+              ${articleCopy.download}
+            </button>
+            <div
+              id="${ARTICLE_DOWNLOAD_MENU_ID}"
+              class="article-download-menu__panel"
+              role="menu"
+              aria-label="${escapeAttribute(articleCopy.download)}"
+              hidden
+            >
+              <button
+                id="${ARTICLE_DOWNLOAD_MD_BUTTON_ID}"
+                type="button"
+                role="menuitem"
+                class="article-download-menu__item"
+              >
+                ${articleCopy.downloadMd}
+              </button>
+              <button
+                id="${ARTICLE_DOWNLOAD_PDF_BUTTON_ID}"
+                type="button"
+                role="menuitem"
+                class="article-download-menu__item"
+              >
+                ${articleCopy.downloadPdf}
+              </button>
+            </div>
+          </div>
         </div>
 
         <div class="article-detail__neighbors">
           ${
             previousArticle
-              ? `<button type="button" class="article-detail__neighbor" data-open-article="${escapeAttribute(previousArticle.id)}">${articleCopy.previousArticle}: ${escapeHtml(previousArticle.title)}</button>`
+              ? `<a class="article-detail__neighbor" href="${escapeAttribute(buildLocalizedPath(buildArticleRoute(previousArticle.id), currentLocale))}">${articleCopy.previousArticle}: ${escapeHtml(previousArticle.title)}</a>`
               : ""
           }
           ${
             nextArticle
-              ? `<button type="button" class="article-detail__neighbor" data-open-article="${escapeAttribute(nextArticle.id)}">${articleCopy.nextArticle}: ${escapeHtml(nextArticle.title)}</button>`
+              ? `<a class="article-detail__neighbor" href="${escapeAttribute(buildLocalizedPath(buildArticleRoute(nextArticle.id), currentLocale))}">${articleCopy.nextArticle}: ${escapeHtml(nextArticle.title)}</a>`
               : ""
           }
         </div>
@@ -2396,12 +2452,25 @@ function syncArticleCategoryOptions(
 
 function setupArticleDetailPage(route: ArticleDetailRoutePath) {
   const articleId = extractArticleId(route);
+  const articleCopy = getArticleUiCopy();
 
   const backButton = document.getElementById(
     ARTICLE_BACK_BUTTON_ID
   ) as HTMLButtonElement | null;
   const copyButton = document.getElementById(
     ARTICLE_COPY_LINK_BUTTON_ID
+  ) as HTMLButtonElement | null;
+  const downloadMenuTrigger = document.getElementById(
+    ARTICLE_DOWNLOAD_MENU_TRIGGER_ID
+  ) as HTMLButtonElement | null;
+  const downloadMenu = document.getElementById(
+    ARTICLE_DOWNLOAD_MENU_ID
+  ) as HTMLDivElement | null;
+  const downloadMdButton = document.getElementById(
+    ARTICLE_DOWNLOAD_MD_BUTTON_ID
+  ) as HTMLButtonElement | null;
+  const downloadPdfButton = document.getElementById(
+    ARTICLE_DOWNLOAD_PDF_BUTTON_ID
   ) as HTMLButtonElement | null;
 
   backButton?.addEventListener("click", () => {
@@ -2422,6 +2491,137 @@ function setupArticleDetailPage(route: ArticleDetailRoutePath) {
         }
       }, ARTICLE_COPY_LINK_FEEDBACK_MS);
     });
+  }
+
+  cleanupArticleDetailDownloadMenu();
+
+  if (articleId && downloadMenuTrigger && downloadMenu && downloadMdButton && downloadPdfButton) {
+    const articleLocale = getArticleLocaleToken(currentLocale);
+    const closeMenu = () => {
+      downloadMenu.hidden = true;
+      downloadMenuTrigger.setAttribute("aria-expanded", "false");
+      downloadMenuTrigger.classList.remove("is-open");
+    };
+    const openMenu = () => {
+      downloadMenu.hidden = false;
+      downloadMenuTrigger.setAttribute("aria-expanded", "true");
+      downloadMenuTrigger.classList.add("is-open");
+    };
+    const toggleMenu = () => {
+      if (downloadMenu.hidden) {
+        openMenu();
+      } else {
+        closeMenu();
+      }
+    };
+
+    const handleTriggerClick = () => {
+      toggleMenu();
+    };
+    const handleDocumentClick = (event: MouseEvent) => {
+      const target = event.target as HTMLElement | null;
+      if (!target) {
+        return;
+      }
+      if (downloadMenu.contains(target) || downloadMenuTrigger.contains(target)) {
+        return;
+      }
+      closeMenu();
+    };
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") {
+        return;
+      }
+      closeMenu();
+      if (downloadMenuTrigger.isConnected) {
+        downloadMenuTrigger.focus();
+      }
+    };
+    const handleMenuKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        closeMenu();
+        downloadMenuTrigger.focus();
+      }
+    };
+    const handleTriggerKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "ArrowDown" && downloadMenu.hidden) {
+        event.preventDefault();
+        openMenu();
+        downloadMdButton.focus();
+      }
+    };
+
+    const handleDownloadMarkdown = async () => {
+      showGlobalToast(articleCopy.downloadPreparing, { key: "article-download" });
+      try {
+        const source = await articlesApiService.getSourceMarkdown(articleId, articleLocale, true);
+        downloadTextFile(source.content, source.fileName);
+        closeMenu();
+      } catch (error) {
+        closeMenu();
+        showGlobalToast(readableApiError(error, articleCopy.downloadFailed), {
+          isError: true,
+          key: "article-download",
+        });
+      }
+    };
+
+    const handleDownloadPdf = async () => {
+      showGlobalToast(articleCopy.downloadPreparing, { key: "article-download" });
+      try {
+        const source = await articlesApiService.getSourceMarkdown(articleId, articleLocale);
+        const detail =
+          articleDetailCache.get(articleId) ??
+          (await loadArticleDetail(articleId).catch(() => null));
+        const title = detail?.title ?? articleId;
+        const author = detail?.author.name ?? "";
+        const publishedAt = detail?.publishedAt ?? "";
+        const { downloadArticlePdf } = await import("../services/articlePdfService");
+
+        await downloadArticlePdf(
+          {
+            title,
+            markdown: source.content,
+            locale: currentLocale,
+            author,
+            publishedAt: formatArticleDate(publishedAt),
+          },
+          `${articleId}.${articleLocale}.pdf`
+        );
+        closeMenu();
+      } catch (error) {
+        closeMenu();
+        showGlobalToast(readableApiError(error, articleCopy.downloadFailed), {
+          isError: true,
+          key: "article-download",
+        });
+      }
+    };
+    const handleDownloadMarkdownClick = () => {
+      void handleDownloadMarkdown();
+    };
+    const handleDownloadPdfClick = () => {
+      void handleDownloadPdf();
+    };
+
+    downloadMenuTrigger.addEventListener("click", handleTriggerClick);
+    downloadMenuTrigger.addEventListener("keydown", handleTriggerKeyDown);
+    downloadMenu.addEventListener("keydown", handleMenuKeyDown);
+    downloadMdButton.addEventListener("click", handleDownloadMarkdownClick);
+    downloadPdfButton.addEventListener("click", handleDownloadPdfClick);
+    document.addEventListener("click", handleDocumentClick);
+    window.addEventListener("keydown", handleEscape);
+
+    articleDetailDownloadMenuCleanup = () => {
+      downloadMenuTrigger.removeEventListener("click", handleTriggerClick);
+      downloadMenuTrigger.removeEventListener("keydown", handleTriggerKeyDown);
+      downloadMenu.removeEventListener("keydown", handleMenuKeyDown);
+      downloadMdButton.removeEventListener("click", handleDownloadMarkdownClick);
+      downloadPdfButton.removeEventListener("click", handleDownloadPdfClick);
+      document.removeEventListener("click", handleDocumentClick);
+      window.removeEventListener("keydown", handleEscape);
+    };
   }
 
   setupArticleOpenButtons(document);
@@ -2466,15 +2666,38 @@ function setupArticleDetailPage(route: ArticleDetailRoutePath) {
 }
 
 function setupArticleOpenButtons(scope: ParentNode) {
-  const openButtons = scope.querySelectorAll<HTMLElement>("[data-open-article]");
-  openButtons.forEach((button) => {
-    button.addEventListener("click", () => {
-      const articleId = button.dataset.openArticle;
+  const openTargets = scope.querySelectorAll<HTMLElement>("[data-open-article]");
+  openTargets.forEach((target) => {
+    if (target.dataset.openArticleBound === "true") {
+      return;
+    }
+    target.dataset.openArticleBound = "true";
+
+    const open = () => {
+      const articleId = target.dataset.openArticle;
       if (!articleId) {
         return;
       }
       navigate(buildArticleRoute(articleId));
+    };
+
+    target.addEventListener("click", (event) => {
+      const clickTarget = event.target as HTMLElement | null;
+      if (clickTarget?.closest("a[href]")) {
+        return;
+      }
+      open();
     });
+
+    if (target.getAttribute("role") === "link") {
+      target.addEventListener("keydown", (event) => {
+        if (event.key !== "Enter" && event.key !== " ") {
+          return;
+        }
+        event.preventDefault();
+        open();
+      });
+    }
   });
 }
 
@@ -5988,6 +6211,25 @@ async function copyTextToClipboard(value: string): Promise<boolean> {
   }
 
   return fallbackCopy(value);
+}
+
+function downloadTextFile(content: string, fileName: string): void {
+  const blob = new Blob([content], {
+    type: "text/markdown; charset=utf-8",
+  });
+  const href = URL.createObjectURL(blob);
+
+  try {
+    const anchor = document.createElement("a");
+    anchor.href = href;
+    anchor.download = fileName;
+    anchor.style.display = "none";
+    document.body.appendChild(anchor);
+    anchor.click();
+    document.body.removeChild(anchor);
+  } finally {
+    window.setTimeout(() => URL.revokeObjectURL(href), 2000);
+  }
 }
 
 function fallbackCopy(value: string): boolean {

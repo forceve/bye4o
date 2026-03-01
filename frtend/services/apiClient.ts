@@ -19,6 +19,15 @@ interface ApiFetchOptions extends Omit<RequestInit, "body"> {
 const API_BASE = normalizeApiBase(import.meta.env.VITE_API_BASE);
 
 export async function apiFetch<T>(path: string, options: ApiFetchOptions = {}): Promise<T> {
+  const response = await apiFetchRaw(path, options);
+  const payload = await parseJsonSafely(response);
+  return payload as T;
+}
+
+export async function apiFetchRaw(
+  path: string,
+  options: ApiFetchOptions = {}
+): Promise<Response> {
   const headers = new Headers(options.headers ?? {});
   const hasJsonBody = options.json !== undefined;
 
@@ -33,18 +42,19 @@ export async function apiFetch<T>(path: string, options: ApiFetchOptions = {}): 
     credentials: "include",
   });
 
-  const payload = await parseJsonSafely(response);
-
   if (!response.ok) {
+    const payload = await parseJsonSafely(response.clone());
     const code = extractCode(payload);
     const details = extractDetails(payload);
+    const plainText = await readTextSafely(response.clone());
     const message =
       extractMessage(payload) ??
+      plainText ??
       `Request failed with status ${response.status}`;
     throw new ApiError(message, response.status, code, details);
   }
 
-  return payload as T;
+  return response;
 }
 
 export function buildApiUrl(path: string): string {
@@ -85,6 +95,16 @@ async function parseJsonSafely(response: Response): Promise<unknown> {
 
   try {
     return await response.json();
+  } catch {
+    return null;
+  }
+}
+
+async function readTextSafely(response: Response): Promise<string | null> {
+  try {
+    const value = await response.text();
+    const trimmed = value.trim();
+    return trimmed ? trimmed : null;
   } catch {
     return null;
   }
